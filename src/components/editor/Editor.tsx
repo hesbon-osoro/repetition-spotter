@@ -2,16 +2,19 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import QuillWrapper, { QuillWrapperRef } from './QuillWrapper';
 import { useSelectionAnalysis } from '../../hooks/useSelectionAnalysis';
+import { applyHighlights } from '../../utils/textProcessing';
 import EditorLoader from '@/components/ui/EditorLoader';
 import { sampleText } from '@/lib/sampleText';
 
 interface EditorProps {
   content: string | any[];
   onChange: (content: string | any[]) => void;
+  quillRef?: React.RefObject<any>;
 }
 
-const Editor: React.FC<EditorProps> = ({ content, onChange }) => {
-  const quillRef = useRef<QuillWrapperRef>(null);
+const Editor: React.FC<EditorProps> = ({ content, onChange, quillRef: externalQuillRef }) => {
+  const internalQuillRef = useRef<QuillWrapperRef>(null);
+  const quillRef = externalQuillRef || internalQuillRef;
   const [isLoading, setIsLoading] = useState(true);
   const { analyzeSelection } = useSelectionAnalysis();
 
@@ -41,7 +44,17 @@ const Editor: React.FC<EditorProps> = ({ content, onChange }) => {
             const textContent = Array.isArray(content)
               ? content.map(item => item.insert || '').join('')
               : content;
-            analyzeSelection(selectedText, range, textContent);
+            
+            // Analyze selection and get matches
+            const analysis = analyzeSelection(selectedText, range, textContent);
+            
+            // Apply highlights to similar text
+            if (analysis && analysis.matches.length > 0 && quillRef.current) {
+              const editor = quillRef.current.getEditor();
+              if (editor) {
+                applyHighlights(editor, analysis.matches, selectedText, range);
+              }
+            }
           }
         } catch (error) {
           console.warn('Selection analysis error:', error);

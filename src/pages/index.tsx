@@ -9,6 +9,7 @@ import StatsCards from '../components/analytics/StatsCards';
 import RepetitionList from '../components/analytics/RepetitionList';
 import Chart from '../components/analytics/Chart';
 import { useTextAnalysis } from '../hooks/useTextAnalysis';
+import { getColorForMatch } from '../utils/highlightUtils';
 
 const Home: NextPage = () => {
   const {
@@ -23,6 +24,7 @@ const Home: NextPage = () => {
     analyze,
     clearHighlights,
     clearText,
+    quillRef,
   } = useTextAnalysis();
 
   return (
@@ -71,7 +73,7 @@ const Home: NextPage = () => {
                   options={options}
                   updateOption={updateOption}
                 />
-                <Editor content={content} onChange={setContent} />
+                <Editor content={content} onChange={setContent} quillRef={quillRef} />
               </div>
 
               <StatsCards stats={stats} />
@@ -79,7 +81,26 @@ const Home: NextPage = () => {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <RepetitionList repetitions={repetitions} />
+              <RepetitionList 
+                repetitions={repetitions} 
+                onHighlight={(repetition) => {
+                  // Highlight the repetition in the editor
+                  if (quillRef.current) {
+                    const editor = quillRef.current.getEditor();
+                    if (editor && repetition.indices && repetition.indices.length > 0) {
+                      // Clear existing highlights first
+                      const length = editor.getLength();
+                      editor.formatText(0, length, 'background', false);
+                      
+                      // Highlight all occurrences of this repetition
+                      repetition.indices.forEach((index) => {
+                        const color = getColorForMatch(repetitions.indexOf(repetition));
+                        editor.formatText(index, repetition.text.length, 'background', color);
+                      });
+                    }
+                  }
+                }}
+              />
               <Chart stats={stats} />
             </div>
           </div>
