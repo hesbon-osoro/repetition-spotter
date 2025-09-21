@@ -144,9 +144,9 @@
             class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6"
           >
             <h3 class="text-lg font-semibold text-gray-900 mb-4">
-              Detection Levels
+              Detection Levels & Advanced Options
             </h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <button
                 class="detection-level-btn active bg-red-100 hover:bg-red-200 text-red-800 px-4 py-3 rounded-lg font-medium transition-colors"
                 data-level="paragraph"
@@ -175,6 +175,40 @@
               >
                 🔤 Words
               </button>
+            </div>
+
+            <!-- Advanced Detection Options -->
+            <div class="border-t border-gray-200 pt-4">
+              <h4 class="text-sm font-semibold text-gray-700 mb-3">
+                Advanced Detection
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="semanticSimilarity"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Semantic Similarity</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="ignoreCase"
+                    checked
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Ignore Case</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="ignorePunctuation"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Ignore Punctuation</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -389,6 +423,30 @@
               <p class="text-sm text-gray-500 mt-1">
                 Click to highlight matches
               </p>
+              <div
+                id="selectionInfo"
+                class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden"
+              >
+                <div class="flex items-center">
+                  <svg
+                    class="w-4 h-4 text-blue-600 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                  <span class="text-sm font-medium text-blue-800"
+                    >Selection Analysis</span
+                  >
+                </div>
+                <p id="selectionText" class="text-xs text-blue-600 mt-1"></p>
+              </div>
             </div>
 
             <div class="p-4">
@@ -447,66 +505,86 @@
 
     <script>
       let quill;
-      let currentLevel = "paragraph";
+      let currentLevel = 'paragraph';
       let repetitions = [];
       let chart;
 
       // Initialize Quill Editor
       const toolbarOptions = [
-        ["bold", "italic", "underline", "strike"],
-        ["blockquote", "code-block"],
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
         [{ header: 1 }, { header: 2 }],
-        [{ list: "ordered" }, { list: "bullet" }],
-        [{ script: "sub" }, { script: "super" }],
-        [{ indent: "-1" }, { indent: "+1" }],
-        [{ direction: "rtl" }],
-        [{ size: ["small", false, "large", "huge"] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ script: 'sub' }, { script: 'super' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        [{ direction: 'rtl' }],
+        [{ size: ['small', false, 'large', 'huge'] }],
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
         [{ color: [] }, { background: [] }],
         [{ font: [] }],
         [{ align: [] }],
-        ["clean"],
+        ['clean'],
       ];
 
-      quill = new Quill("#editor", {
-        theme: "snow",
+      quill = new Quill('#editor', {
+        theme: 'snow',
         modules: {
           toolbar: toolbarOptions,
         },
         placeholder:
-          "Paste your text here for repetition analysis...",
+          'Paste your text here for VSCode-style repetition analysis...',
       });
 
-      // Add sample text
+      // Add sample text with intentional repetitions for testing
       quill.setContents([
         {
           insert:
-            "Welcome to RepetitionSpotter, the advanced text analysis tool. This tool helps you identify repeated content in your writing. The tool uses sophisticated algorithms to detect repetitions at multiple levels.\n\n",
+            'Welcome to RepetitionSpotter, the advanced text analysis tool. This tool helps you identify repeated content in your writing. The tool uses sophisticated algorithms to detect repetitions at multiple levels.\n\n',
         },
         {
           insert:
-            "The analysis tool works by examining your text for repeated sequences. The tool can detect paragraphs, sentences, phrases, and individual words that appear multiple times. This makes the tool particularly useful for academic writing.\n\n",
+            'The analysis tool works by examining your text for repeated sequences. The tool can detect paragraphs, sentences, phrases, and individual words that appear multiple times. This makes the tool particularly useful for academic writing.\n\n',
         },
         {
           insert:
-            "To get started with the tool, simply paste your text into the editor above. The tool will automatically analyze your content and highlight any repetitions it finds. You can adjust the detection level to focus on different types of repetitions.\n\n",
+            'To get started with the tool, simply paste your text into the editor above. The tool will automatically analyze your content and highlight any repetitions it finds. You can adjust the detection level to focus on different types of repetitions.\n\n',
         },
         {
           insert:
-            "The tool provides comprehensive statistics about your text. The tool shows word count, repetition count, and efficiency scores. This helps you understand the overall quality of your writing.",
+            'Welcome to RepetitionSpotter, the advanced text analysis tool. This tool helps you identify repeated content in your writing. The tool uses sophisticated algorithms to detect repetitions at multiple levels.\n\n',
+        },
+        {
+          insert:
+            'The analysis tool works by examining your text for repeated sequences. The tool can detect paragraphs, sentences, phrases, and individual words that appear multiple times. This makes the tool particularly useful for academic writing.\n\n',
+        },
+        {
+          insert:
+            'To get started with the tool, simply paste your text into the editor above. The tool will automatically analyze your content and highlight any repetitions it finds. You can adjust the detection level to focus on different types of repetitions.\n\n',
+        },
+        {
+          insert:
+            'Welcome to RepetitionSpotter, the advanced text analysis tool. This tool helps you identify repeated content in your writing. The tool uses sophisticated algorithms to detect repetitions at multiple levels.\n\n',
+        },
+        {
+          insert:
+            'The analysis tool works by examining your text for repeated sequences. The tool can detect paragraphs, sentences, phrases, and individual words that appear multiple times. This makes the tool particularly useful for academic writing.\n\n',
+        },
+        {
+          insert:
+            'To get started with the tool, simply paste your text into the editor above. The tool will automatically analyze your content and highlight any repetitions it finds. You can adjust the detection level to focus on different types of repetitions.',
         },
       ]);
 
       // Initialize Chart
-      const ctx = document.getElementById("repetitionChart").getContext("2d");
+      const ctx = document.getElementById('repetitionChart').getContext('2d');
       chart = new Chart(ctx, {
-        type: "doughnut",
+        type: 'doughnut',
         data: {
-          labels: ["Unique Content", "Repetitions"],
+          labels: ['Unique Content', 'Repetitions'],
           datasets: [
             {
               data: [100, 0],
-              backgroundColor: ["#10b981", "#f59e0b"],
+              backgroundColor: ['#10b981', '#f59e0b'],
               borderWidth: 0,
             },
           ],
@@ -516,7 +594,7 @@
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              position: "bottom",
+              position: 'bottom',
             },
           },
         },
@@ -524,37 +602,66 @@
 
       // Event Listeners
       document
-        .getElementById("minLengthSlider")
-        .addEventListener("input", function () {
-          document.getElementById("minLengthValue").textContent = this.value;
+        .getElementById('minLengthSlider')
+        .addEventListener('input', function () {
+          document.getElementById('minLengthValue').textContent = this.value;
         });
 
       document
-        .getElementById("similaritySlider")
-        .addEventListener("input", function () {
-          document.getElementById("similarityValue").textContent = this.value;
+        .getElementById('similaritySlider')
+        .addEventListener('input', function () {
+          document.getElementById('similarityValue').textContent = this.value;
         });
 
       document
-        .getElementById("analyzeText")
-        .addEventListener("click", analyzeText);
-      document.getElementById("clearText").addEventListener("click", clearText);
+        .getElementById('analyzeText')
+        .addEventListener('click', analyzeText);
+      document.getElementById('clearText').addEventListener('click', clearText);
       document
-        .getElementById("clearHighlights")
-        .addEventListener("click", clearHighlights);
+        .getElementById('clearHighlights')
+        .addEventListener('click', clearHighlights);
       document
-        .getElementById("searchRepetitions")
-        .addEventListener("input", filterRepetitions);
+        .getElementById('searchRepetitions')
+        .addEventListener('input', filterRepetitions);
+
+      // Advanced options event listeners
+      document
+        .getElementById('semanticSimilarity')
+        .addEventListener('change', function () {
+          if (quill.getText().trim().length > 0) {
+            analyzeText();
+          }
+        });
+
+      document
+        .getElementById('ignoreCase')
+        .addEventListener('change', function () {
+          if (quill.getText().trim().length > 0) {
+            analyzeText();
+          }
+        });
+
+      document
+        .getElementById('ignorePunctuation')
+        .addEventListener('change', function () {
+          if (quill.getText().trim().length > 0) {
+            analyzeText();
+          }
+        });
 
       // Selection handling for VSCode-style highlighting
-      quill.on("selection-change", function (range, oldRange, source) {
+      quill.on('selection-change', function (range, oldRange, source) {
         if (range && range.length > 0) {
           const selectedText = quill.getText(range.index, range.length).trim();
           if (selectedText.length > 0) {
             highlightSimilarText(selectedText, range);
+            findAndDisplaySelectionRepetitions(selectedText, range);
+            showSelectionInfo(selectedText, range);
           }
         } else {
           clearSelectionHighlights();
+          hideSelectionInfo();
+          displayRepetitions(repetitions); // Show original analysis
         }
       });
 
@@ -562,12 +669,12 @@
         currentLevel = level;
 
         // Update button states
-        document.querySelectorAll(".detection-level-btn").forEach((btn) => {
-          btn.classList.remove("active");
+        document.querySelectorAll('.detection-level-btn').forEach(btn => {
+          btn.classList.remove('active');
         });
         document
           .querySelector(`[data-level="${level}"]`)
-          .classList.add("active");
+          .classList.add('active');
 
         // Re-analyze if there's content
         if (quill.getText().trim().length > 0) {
@@ -582,16 +689,16 @@
         clearHighlights();
 
         switch (currentLevel) {
-          case "paragraph":
+          case 'paragraph':
             repetitions = findParagraphRepetitions(text);
             break;
-          case "sentence":
+          case 'sentence':
             repetitions = findSentenceRepetitions(text);
             break;
-          case "phrase":
+          case 'phrase':
             repetitions = findPhraseRepetitions(text);
             break;
-          case "word":
+          case 'word':
             repetitions = findWordRepetitions(text);
             break;
         }
@@ -602,34 +709,79 @@
       }
 
       function findParagraphRepetitions(text) {
-        const paragraphs = text
-          .split("\n\n")
-          .filter((p) => p.trim().length > 0);
+        const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
         const repetitions = [];
         const seen = new Map();
 
+        // Single paragraph repetitions
         paragraphs.forEach((paragraph, index) => {
           const normalized = paragraph.trim().toLowerCase();
           if (normalized.length > 50) {
-            // Only consider substantial paragraphs
             if (seen.has(normalized)) {
-              seen.get(normalized).push(index);
+              seen.get(normalized).push({
+                index: index,
+                originalText: paragraph.trim(),
+              });
             } else {
-              seen.set(normalized, [index]);
+              seen.set(normalized, [
+                {
+                  index: index,
+                  originalText: paragraph.trim(),
+                },
+              ]);
             }
           }
         });
 
-        seen.forEach((indices, paragraph) => {
-          if (indices.length > 1) {
+        // Multi-paragraph combinations (2-5 consecutive paragraphs)
+        for (let len = 2; len <= Math.min(5, paragraphs.length); len++) {
+          for (let i = 0; i <= paragraphs.length - len; i++) {
+            const combination = paragraphs
+              .slice(i, i + len)
+              .map(p => p.trim())
+              .join('\n\n');
+            const normalizedCombination = combination.toLowerCase();
+
+            if (normalizedCombination.length > 100) {
+              const key = `multi_${len}_${normalizedCombination}`;
+              if (seen.has(key)) {
+                seen.get(key).push({
+                  index: i,
+                  originalText: combination,
+                });
+              } else {
+                seen.set(key, [
+                  {
+                    index: i,
+                    originalText: combination,
+                  },
+                ]);
+              }
+            }
+          }
+        }
+
+        seen.forEach((matches, content) => {
+          if (matches.length > 1) {
+            const isMulti = content.startsWith('multi_');
+            const actualContent = isMulti
+              ? content.substring(content.indexOf('_', 6) + 1)
+              : content;
+            const paragraphCount = isMulti
+              ? parseInt(content.split('_')[1])
+              : 1;
+            const originalText = matches[0].originalText;
+
             repetitions.push({
               text:
-                paragraph.substring(0, 100) +
-                (paragraph.length > 100 ? "..." : ""),
-              fullText: paragraph,
-              count: indices.length,
-              level: "paragraph",
-              indices: indices,
+                originalText.substring(0, 150) +
+                (originalText.length > 150 ? '...' : ''),
+              fullText: originalText,
+              count: matches.length,
+              level: 'paragraph',
+              paragraphCount: paragraphCount,
+              indices: matches.map(m => m.index),
+              matches: matches,
             });
           }
         });
@@ -637,7 +789,7 @@
         return repetitions.sort((a, b) => b.count - a.count);
       }
 
-      function findSentenceRepetitions(text)
+      function findSentenceRepetitions(text) {
         const sentences = text.match(/[^\.!?]+[\.!?]+/g) || [];
         const repetitions = [];
         const seen = new Map();
@@ -660,7 +812,7 @@
               text: sentence.trim(),
               fullText: sentence.trim(),
               count: indices.length,
-              level: "sentence",
+              level: 'sentence',
               indices: indices,
             });
           }
@@ -671,7 +823,7 @@
 
       function findPhraseRepetitions(text) {
         const minLength = parseInt(
-          document.getElementById("minLengthSlider").value,
+          document.getElementById('minLengthSlider').value
         );
         const words = text.toLowerCase().match(/\b\w+\b/g) || [];
         const repetitions = [];
@@ -679,7 +831,7 @@
 
         for (let len = minLength; len <= Math.min(10, words.length); len++) {
           for (let i = 0; i <= words.length - len; i++) {
-            const phrase = words.slice(i, i + len).join(" ");
+            const phrase = words.slice(i, i + len).join(' ');
             if (seen.has(phrase)) {
               seen.get(phrase).push(i);
             } else {
@@ -694,7 +846,7 @@
               text: phrase,
               fullText: phrase,
               count: indices.length,
-              level: "phrase",
+              level: 'phrase',
               indices: indices,
             });
           }
@@ -704,25 +856,61 @@
       }
 
       function findWordRepetitions(text) {
+        const minLength = parseInt(
+          document.getElementById('minLengthSlider').value
+        );
         const words = text.toLowerCase().match(/\b\w+\b/g) || [];
-        const wordCount = {};
         const repetitions = [];
+        const seen = new Map();
 
-        words.forEach((word) => {
-          if (word.length > 3) {
-            // Only consider words longer than 3 characters
-            wordCount[word] = (wordCount[word] || 0) + 1;
+        // Find sequences of words based on minimum length setting
+        for (let len = minLength; len <= Math.min(20, words.length); len++) {
+          for (let i = 0; i <= words.length - len; i++) {
+            const sequence = words.slice(i, i + len).join(' ');
+
+            // Only consider sequences with substantial content
+            if (sequence.length > 10) {
+              if (seen.has(sequence)) {
+                seen.get(sequence).push(i);
+              } else {
+                seen.set(sequence, [i]);
+              }
+            }
           }
-        });
+        }
 
-        Object.entries(wordCount).forEach(([word, count]) => {
-          if (count > 1) {
+        // Also include single words if minimum length is 1
+        if (minLength === 1) {
+          const wordCount = {};
+          words.forEach((word, index) => {
+            if (word.length > 3) {
+              if (wordCount[word]) {
+                wordCount[word].push(index);
+              } else {
+                wordCount[word] = [index];
+              }
+            }
+          });
+
+          Object.entries(wordCount).forEach(([word, indices]) => {
+            if (indices.length > 1) {
+              seen.set(word, indices);
+            }
+          });
+        }
+
+        seen.forEach((indices, sequence) => {
+          if (indices.length > 1) {
             repetitions.push({
-              text: word,
-              fullText: word,
-              count: count,
-              level: "word",
-              indices: [],
+              text:
+                sequence.length > 100
+                  ? sequence.substring(0, 100) + '...'
+                  : sequence,
+              fullText: sequence,
+              count: indices.length,
+              level: 'word',
+              indices: indices,
+              wordCount: sequence.split(' ').length,
             });
           }
         });
@@ -734,11 +922,11 @@
         clearSelectionHighlights();
 
         const fullText = quill.getText();
-        const regex = new RegExp(escapeRegExp(selectedText), "gi");
+        const regex = new RegExp(escapeRegExp(selectedText), 'gi');
         let match;
 
         // First highlight the selection itself
-        quill.formatText(range.index, range.length, "background", "#add8e6");
+        quill.formatText(range.index, range.length, 'background', '#add8e6');
 
         // Then highlight all matches
         while ((match = regex.exec(fullText)) !== null) {
@@ -746,90 +934,453 @@
             quill.formatText(
               match.index,
               match[0].length,
-              "background",
-              "#ffeb3b",
+              'background',
+              '#ffeb3b'
             );
           }
         }
       }
 
+      function findAndDisplaySelectionRepetitions(selectedText, range) {
+        const fullText = quill.getText();
+        const ignoreCase = document.getElementById('ignoreCase').checked;
+        const ignorePunctuation =
+          document.getElementById('ignorePunctuation').checked;
+        const semanticSimilarity =
+          document.getElementById('semanticSimilarity').checked;
+
+        let processedText = selectedText;
+        if (ignorePunctuation) {
+          processedText = processedText.replace(/[^\w\s]/g, '');
+        }
+
+        const flags = ignoreCase ? 'gi' : 'g';
+        const regex = new RegExp(escapeRegExp(processedText), flags);
+        const matches = [];
+        let match;
+
+        let searchText = fullText;
+        if (ignorePunctuation) {
+          searchText = fullText.replace(/[^\w\s]/g, '');
+        }
+
+        while ((match = regex.exec(searchText)) !== null) {
+          const originalIndex = findOriginalIndex(
+            fullText,
+            match.index,
+            ignorePunctuation
+          );
+          if (originalIndex !== range.index) {
+            // Don't include the selection itself
+            matches.push({
+              index: originalIndex,
+              text: match[0],
+              context: getContext(fullText, originalIndex, match[0].length),
+              similarity: calculateSimilarity(selectedText, match[0]),
+            });
+          }
+        }
+
+        // Add semantic similarity matches if enabled
+        if (semanticSimilarity && matches.length < 10) {
+          const semanticMatches = findSemanticMatches(
+            selectedText,
+            fullText,
+            range
+          );
+          matches.push(...semanticMatches);
+        }
+
+        if (matches.length > 0) {
+          const selectionRepetition = {
+            text:
+              selectedText.length > 100
+                ? selectedText.substring(0, 100) + '...'
+                : selectedText,
+            fullText: selectedText,
+            count: matches.length + 1, // +1 for the selection itself
+            level: determineSelectionLevel(selectedText),
+            matches: matches,
+            isSelection: true,
+            range: range,
+          };
+
+          displaySelectionRepetitions([selectionRepetition]);
+        } else {
+          displaySelectionRepetitions([]);
+        }
+      }
+
+      function findOriginalIndex(fullText, processedIndex, ignorePunctuation) {
+        if (!ignorePunctuation) return processedIndex;
+
+        let originalIndex = 0;
+        let processedCount = 0;
+
+        for (
+          let i = 0;
+          i < fullText.length && processedCount < processedIndex;
+          i++
+        ) {
+          if (!/[^\w\s]/.test(fullText[i])) {
+            processedCount++;
+          }
+          originalIndex = i + 1;
+        }
+
+        return originalIndex;
+      }
+
+      function findSemanticMatches(selectedText, fullText, range) {
+        const matches = [];
+        const words = selectedText.toLowerCase().split(/\s+/);
+        const sentences = fullText.match(/[^\.!?]+[\.!?]+/g) || [];
+
+        sentences.forEach((sentence, index) => {
+          const sentenceWords = sentence.toLowerCase().split(/\s+/);
+          const commonWords = words.filter(
+            word =>
+              word.length > 3 &&
+              sentenceWords.some(sw => sw.includes(word) || word.includes(sw))
+          );
+
+          if (commonWords.length >= Math.min(3, words.length * 0.6)) {
+            const sentenceStart = fullText.indexOf(sentence);
+            if (
+              sentenceStart !== -1 &&
+              (sentenceStart < range.index ||
+                sentenceStart >= range.index + range.length)
+            ) {
+              matches.push({
+                index: sentenceStart,
+                text: sentence.trim(),
+                context: getContext(fullText, sentenceStart, sentence.length),
+                similarity: (commonWords.length / words.length) * 100,
+                isSemantic: true,
+              });
+            }
+          }
+        });
+
+        return matches.slice(0, 5); // Limit semantic matches
+      }
+
+      function calculateSimilarity(text1, text2) {
+        const words1 = text1.toLowerCase().split(/\s+/);
+        const words2 = text2.toLowerCase().split(/\s+/);
+        const commonWords = words1.filter(word => words2.includes(word));
+        return Math.round(
+          (commonWords.length / Math.max(words1.length, words2.length)) * 100
+        );
+      }
+
+      function showSelectionInfo(selectedText, range) {
+        const info = document.getElementById('selectionInfo');
+        const textElement = document.getElementById('selectionText');
+
+        const wordCount = selectedText.split(/\s+/).length;
+        const charCount = selectedText.length;
+        const level = determineSelectionLevel(selectedText);
+
+        textElement.textContent = `Selected: ${wordCount} words, ${charCount} characters (${level} level)`;
+        info.classList.remove('hidden');
+      }
+
+      function hideSelectionInfo() {
+        document.getElementById('selectionInfo').classList.add('hidden');
+      }
+
+      function determineSelectionLevel(text) {
+        const sentences = text.match(/[^\.!?]+[\.!?]+/g) || [];
+        const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
+        const words = text.match(/\b\w+\b/g) || [];
+
+        if (paragraphs.length > 1) return 'paragraph';
+        if (sentences.length >= 1) return 'sentence';
+        if (words.length > 5) return 'phrase';
+        return 'word';
+      }
+
+      function getContext(fullText, index, length) {
+        const start = Math.max(0, index - 50);
+        const end = Math.min(fullText.length, index + length + 50);
+        const context = fullText.substring(start, end);
+        return (
+          (start > 0 ? '...' : '') +
+          context +
+          (end < fullText.length ? '...' : '')
+        );
+      }
+
+      function displaySelectionRepetitions(selectionReps) {
+        const container = document.getElementById('repetitionsList');
+
+        if (selectionReps.length === 0) {
+          container.innerHTML = `
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm text-blue-800 font-medium">Selection Analysis</p>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-1">No repetitions found for selected text</p>
+                    </div>
+                `;
+          return;
+        }
+
+        const rep = selectionReps[0];
+        const exactMatches = rep.matches.filter(m => !m.isSemantic);
+        const semanticMatches = rep.matches.filter(m => m.isSemantic);
+
+        container.innerHTML = `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm text-green-800 font-medium">Selection Analysis</p>
+                        </div>
+                        <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">${rep.count} total</span>
+                    </div>
+                    <p class="text-sm text-green-700 mb-2">"${rep.text}"</p>
+                    <div class="flex items-center space-x-4 text-xs text-green-600">
+                        <span class="capitalize">${rep.level} level</span>
+                        ${exactMatches.length > 0 ? `<span>${exactMatches.length} exact</span>` : ''}
+                        ${semanticMatches.length > 0 ? `<span>${semanticMatches.length} similar</span>` : ''}
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    ${
+                      exactMatches.length > 0
+                        ? `
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            Exact Matches (${exactMatches.length})
+                        </h4>
+                        ${exactMatches
+                          .map(
+                            (match, index) => `
+                            <div class="p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                 onclick="scrollToMatch(${match.index}, ${match.text.length})">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-medium text-gray-500">Match ${index + 1}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">${match.similarity || 100}%</span>
+                                        <span class="text-xs text-gray-400">Pos ${match.index}</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-600 italic">${match.context}</p>
+                            </div>
+                        `
+                          )
+                          .join('')}
+                    `
+                        : ''
+                    }
+                    
+                    ${
+                      semanticMatches.length > 0
+                        ? `
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 mt-4 flex items-center">
+                            <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                            Similar Content (${semanticMatches.length})
+                        </h4>
+                        ${semanticMatches
+                          .map(
+                            (match, index) => `
+                            <div class="p-3 border border-blue-200 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                                 onclick="scrollToMatch(${match.index}, ${match.text.length})">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-medium text-blue-600">Similar ${index + 1}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-blue-600 bg-blue-200 px-2 py-1 rounded">${Math.round(match.similarity)}%</span>
+                                        <span class="text-xs text-blue-400">Pos ${match.index}</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-blue-600 italic">${match.context}</p>
+                            </div>
+                        `
+                          )
+                          .join('')}
+                    `
+                        : ''
+                    }
+                </div>
+            `;
+      }
+
       function clearSelectionHighlights() {
         const length = quill.getLength();
-        quill.formatText(0, length, "background", false);
+        quill.formatText(0, length, 'background', false);
+        quill.formatText(0, length, 'border', false);
       }
 
       function highlightRepetition(text, level) {
         clearHighlights();
 
         const fullText = quill.getText();
-        const regex = new RegExp(escapeRegExp(text), "gi");
-        let match;
         let matchCount = 0;
+        let firstMatchIndex = -1;
 
-        while ((match = regex.exec(fullText)) !== null) {
-          const className = `level-${level}`;
-          quill.formatText(
-            match.index,
-            match[0].length,
-            "background",
-            getColorForLevel(level),
-          );
-          matchCount++;
+        if (level === 'paragraph') {
+          // For paragraphs, find exact paragraph boundaries
+          const paragraphs = fullText.split('\n\n');
+          let currentIndex = 0;
+
+          paragraphs.forEach((paragraph, index) => {
+            const normalizedParagraph = paragraph.trim().toLowerCase();
+            const normalizedText = text.trim().toLowerCase();
+
+            if (normalizedParagraph === normalizedText) {
+              // Highlight with distinct borders for each match
+              const startIndex = currentIndex;
+              const endIndex = currentIndex + paragraph.length;
+
+              // Add border styling to make boundaries clear
+              quill.formatText(
+                startIndex,
+                paragraph.length,
+                'background',
+                getColorForLevel(level)
+              );
+
+              // Add visual separation with border
+              if (matchCount === 0) {
+                quill.formatText(
+                  startIndex,
+                  paragraph.length,
+                  'border',
+                  '2px solid #dc3545'
+                );
+              } else {
+                quill.formatText(
+                  startIndex,
+                  paragraph.length,
+                  'border',
+                  '2px dashed #dc3545'
+                );
+              }
+
+              if (firstMatchIndex === -1) {
+                firstMatchIndex = startIndex;
+              }
+              matchCount++;
+            }
+
+            currentIndex += paragraph.length + 2; // +2 for \n\n
+          });
+        } else {
+          // For other levels, use regex matching with enhanced boundaries
+          const regex = new RegExp(escapeRegExp(text), 'gi');
+          let match;
+
+          while ((match = regex.exec(fullText)) !== null) {
+            const startIndex = match.index;
+            const length = match[0].length;
+
+            // Apply background color
+            quill.formatText(
+              startIndex,
+              length,
+              'background',
+              getColorForLevel(level)
+            );
+
+            // Add distinct borders for each match
+            if (matchCount === 0) {
+              quill.formatText(
+                startIndex,
+                length,
+                'border',
+                `2px solid ${getBorderColorForLevel(level)}`
+              );
+            } else {
+              quill.formatText(
+                startIndex,
+                length,
+                'border',
+                `2px dashed ${getBorderColorForLevel(level)}`
+              );
+            }
+
+            if (firstMatchIndex === -1) {
+              firstMatchIndex = startIndex;
+            }
+            matchCount++;
+          }
         }
 
-        // Scroll to first match
-        if (matchCount > 0) {
-          const firstMatch = fullText.search(regex);
-          if (firstMatch !== -1) {
-            quill.setSelection(firstMatch, text.length);
-          }
+        // Scroll to first match and select it
+        if (firstMatchIndex !== -1) {
+          quill.setSelection(firstMatchIndex, Math.min(text.length, 100));
+          quill.focus();
         }
       }
 
       function getColorForLevel(level) {
         const colors = {
-          paragraph: "#ffcdd2",
-          sentence: "#fff3e0",
-          phrase: "#e8f5e8",
-          word: "#e3f2fd",
+          paragraph: '#ffcdd2',
+          sentence: '#fff3e0',
+          phrase: '#e8f5e8',
+          word: '#e3f2fd',
         };
-        return colors[level] || "#f5f5f5";
+        return colors[level] || '#f5f5f5';
+      }
+
+      function getBorderColorForLevel(level) {
+        const colors = {
+          paragraph: '#dc3545',
+          sentence: '#ffc107',
+          phrase: '#28a745',
+          word: '#007bff',
+        };
+        return colors[level] || '#6c757d';
       }
 
       function clearHighlights() {
         const length = quill.getLength();
-        quill.formatText(0, length, "background", false);
+        quill.formatText(0, length, 'background', false);
+        quill.formatText(0, length, 'border', false);
       }
 
       function clearText() {
-        quill.setText("");
+        quill.setText('');
         repetitions = [];
-        updateStatistics("", []);
+        updateStatistics('', []);
         displayRepetitions([]);
-        updateChart("", []);
+        updateChart('', []);
       }
 
       function updateStatistics(text, repetitions) {
         const words = text.match(/\b\w+\b/g) || [];
         const totalInstances = repetitions.reduce(
           (sum, rep) => sum + rep.count,
-          0,
+          0
         );
         const efficiency = Math.max(
           0,
-          100 - (totalInstances / words.length) * 100,
+          100 - (totalInstances / words.length) * 100
         );
 
-        document.getElementById("wordCount").textContent = words.length;
-        document.getElementById("repetitionCount").textContent =
+        document.getElementById('wordCount').textContent = words.length;
+        document.getElementById('repetitionCount').textContent =
           repetitions.length;
-        document.getElementById("instanceCount").textContent = totalInstances;
-        document.getElementById("efficiencyScore").textContent =
-          Math.round(efficiency) + "%";
+        document.getElementById('instanceCount').textContent = totalInstances;
+        document.getElementById('efficiencyScore').textContent =
+          Math.round(efficiency) + '%';
+      }
+
+      function scrollToMatch(index, length) {
+        quill.setSelection(index, length);
+        quill.focus();
       }
 
       function displayRepetitions(repetitions) {
-        const container = document.getElementById("repetitionsList");
+        const container = document.getElementById('repetitionsList');
 
         if (repetitions.length === 0) {
           container.innerHTML = `
@@ -847,26 +1398,28 @@
         container.innerHTML = repetitions
           .map(
             (rep, index) => `
-                <div class="repetition-item p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                <div class="repetition-item p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" 
                      onclick="highlightRepetition('${rep.fullText.replace(/'/g, "\\'")}', '${rep.level}')">
                     <div class="flex items-center justify-between mb-2">
                         <span class="inline-block w-4 h-4 rounded level-${rep.level}" style="background-color: ${getColorForLevel(rep.level)}"></span>
                         <span class="text-xs font-medium text-gray-500">${rep.count} times</span>
                     </div>
                     <p class="text-sm font-medium text-gray-900 truncate">"${rep.text}"</p>
-                    <p class="text-xs text-gray-500 mt-1 capitalize">${rep.level} level</p>
+                    <p class="text-xs text-gray-500 mt-1 capitalize">
+                        ${rep.level} level${rep.paragraphCount > 1 ? ` (${rep.paragraphCount} paragraphs)` : ''}${rep.wordCount > 1 ? ` (${rep.wordCount} words)` : ''}
+                    </p>
                 </div>
-            `,
+            `
           )
-          .join("");
+          .join('');
       }
 
       function filterRepetitions() {
         const searchTerm = document
-          .getElementById("searchRepetitions")
+          .getElementById('searchRepetitions')
           .value.toLowerCase();
-        const filteredRepetitions = repetitions.filter((rep) =>
-          rep.text.toLowerCase().includes(searchTerm),
+        const filteredRepetitions = repetitions.filter(rep =>
+          rep.text.toLowerCase().includes(searchTerm)
         );
         displayRepetitions(filteredRepetitions);
       }
@@ -875,7 +1428,7 @@
         const words = text.match(/\b\w+\b/g) || [];
         const totalWords = words.length;
         const repetitionWords = repetitions.reduce((sum, rep) => {
-          return sum + rep.text.split(" ").length * rep.count;
+          return sum + rep.text.split(' ').length * rep.count;
         }, 0);
 
         const uniqueWords = Math.max(0, totalWords - repetitionWords);
@@ -885,7 +1438,7 @@
       }
 
       function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       }
 
       // Auto-analyze on load
@@ -900,7 +1453,7 @@
           if (b) {
             var d = b.createElement('script');
             d.innerHTML =
-              "window.__CF$cv$params={r:'982106340759abeb',t:'MTc1ODM2ODE3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+              "window.__CF$cv$params={r:'98299e5d95b5aac6',t:'MTc1ODQ1ODI5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
             b.getElementsByTagName('head')[0].appendChild(d);
           }
         }
