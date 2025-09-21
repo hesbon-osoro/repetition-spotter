@@ -9,7 +9,7 @@ export default function ExternalScripts() {
       <Script
         id="tailwind-cdn"
         src="https://cdn.tailwindcss.com/3.4.10"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
       />
 
       {/* Configure Tailwind AFTER it's loaded */}

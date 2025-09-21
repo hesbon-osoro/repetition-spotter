@@ -113,7 +113,7 @@ export const useTextAnalysis = () => {
   }, [clearHighlightsHandler]);
 
   const handleSelectionAnalysis = useCallback(
-    (selectedText: string, range: any) => {
+    (selectedText: string, range: { index: number; length: number }) => {
       if (quillRef.current) {
         // Convert content to string for analysis
         const textContent = extractPlainText(content);
@@ -205,31 +205,4 @@ const getColorForRepetition = (index: number): string => {
     'rgba(6, 182, 212, 0.4)', // cyan
   ];
   return colors[index % colors.length];
-};
-
-// Helper function to find text position in Quill editor
-const findTextPositionInEditor = (
-  editor: any,
-  searchText: string,
-  occurrenceIndex: number
-): number => {
-  if (!editor || !searchText) return -1;
-
-  const fullText = editor.getText();
-  let currentIndex = 0;
-  let foundOccurrences = 0;
-
-  while (currentIndex < fullText.length) {
-    const index = fullText.indexOf(searchText, currentIndex);
-    if (index === -1) break;
-
-    if (foundOccurrences === occurrenceIndex) {
-      return index;
-    }
-
-    foundOccurrences++;
-    currentIndex = index + 1;
-  }
-
-  return -1;
 };

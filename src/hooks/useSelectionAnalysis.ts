@@ -134,15 +134,10 @@ const findOriginalIndex = (
     i < originalText.length && processedCount < processedIndex;
     i++
   ) {
-    let char = originalText[i];
+    const char = originalText[i];
 
     if (ignorePunctuation && /[^\w\s]/.test(char)) {
       continue;
-    }
-
-    // Character processing for case-insensitive comparison
-    if (ignoreCase) {
-      char.toLowerCase();
     }
 
     processedCount++;
@@ -161,7 +156,7 @@ const getContext = (text: string, index: number, length: number): string => {
 };
 
 const determineSelectionLevel = (text: string): DetectionLevel => {
-  const sentences = text.match(/[^\.!?]+[\.!?]+/g) || [];
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
   const words = text.match(/\b\w+\b/g) || [];
 

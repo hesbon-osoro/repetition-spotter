@@ -178,7 +178,7 @@ const findPhraseRepetitions = (
 
 const findWordRepetitions = (
   text: string,
-  options: AnalysisOptions
+  _options: AnalysisOptions
 ): Repetition[] => {
   const words = text.toLowerCase().match(/\b\w+\b/g) || [];
   const wordCount: Record<string, number> = {};
@@ -307,7 +307,7 @@ export const applyHighlights = (
   quill: any,
   matches: any[],
   selectedText: string,
-  selectionRange: any
+  selectionRange: { index: number; length: number }
 ) => {
   if (!quill) return;
 

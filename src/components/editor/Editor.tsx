@@ -40,7 +40,7 @@ const extractPlainText = (content: string | any[]): string => {
 interface EditorProps {
   content: string | any[];
   onChange: (content: string | any[]) => void;
-  quillRef?: React.RefObject<any>;
+  quillRef?: React.RefObject<QuillWrapperRef>;
 }
 
 const Editor: React.FC<EditorProps> = ({
@@ -68,7 +68,7 @@ const Editor: React.FC<EditorProps> = ({
   }, [content, onChange]);
 
   const handleSelectionChange = useCallback(
-    (range: any) => {
+    (range: { index: number; length: number } | null) => {
       if (range && range.length > 0 && quillRef.current) {
         try {
           const selectedText = quillRef.current
@@ -94,7 +94,7 @@ const Editor: React.FC<EditorProps> = ({
         }
       }
     },
-    [analyzeSelection, content]
+    [analyzeSelection, content, quillRef]
   );
 
   if (isLoading) {

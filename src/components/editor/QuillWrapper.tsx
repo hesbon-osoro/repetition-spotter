@@ -4,12 +4,12 @@ import dynamic from 'next/dynamic';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 interface QuillWrapperProps {
   value: string | any[];
   onChange: (value: string | any[]) => void;
-  onSelectionChange?: (range: any) => void;
+  onSelectionChange?: (range: { index: number; length: number } | null) => void;
   placeholder?: string;
 }
 
@@ -54,8 +54,8 @@ const QuillWrapper = forwardRef<QuillWrapperRef, QuillWrapperProps>(
 
     return (
       <ReactQuill
-        ref={quillRef as any}
-        value={value as any}
+        ref={quillRef}
+        value={value}
         onChange={onChange}
         modules={modules}
         theme="snow"

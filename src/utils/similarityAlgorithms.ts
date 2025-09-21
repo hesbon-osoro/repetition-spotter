@@ -22,11 +22,11 @@ export const calculateSimilarity = (text1: string, text2: string): number => {
 export const findSemanticMatches = (
   selectedText: string,
   fullText: string,
-  range: any,
+  range: { index: number; length: number },
   similarityThreshold: number = 60
 ): MatchInfo[] => {
   const matches: MatchInfo[] = [];
-  const sentences = fullText.match(/[^\.!?]+[\.!?]+/g) || [];
+  const sentences = fullText.match(/[^.!?]+[.!?]+/g) || [];
   const selectedWords = selectedText
     .toLowerCase()
     .split(/\s+/)
@@ -34,7 +34,7 @@ export const findSemanticMatches = (
 
   if (selectedWords.length === 0) return matches;
 
-  sentences.forEach((sentence, index) => {
+  sentences.forEach(sentence => {
     const sentenceStart = fullText.indexOf(sentence);
     if (
       sentenceStart === -1 ||

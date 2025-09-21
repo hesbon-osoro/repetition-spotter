@@ -2,7 +2,7 @@ export const applyHighlights = (
   quill: any,
   matches: any[],
   selectedText: string,
-  selectionRange: any
+  selectionRange: { index: number; length: number }
 ) => {
   if (!quill) return;
 
@@ -64,7 +64,7 @@ export const scrollToMatch = (quill: any, index: number, length: number) => {
 
   // Scroll to the match
   const line = quill.getLine(index);
-  if (line && line[0] && line[0].domNode) {
+  if (line?.[0]?.domNode) {
     line[0].domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 };
