@@ -39,7 +39,12 @@ const findParagraphRepetitions = (
   text: string,
   options: AnalysisOptions
 ): Repetition[] => {
-  const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
+  // Split by double newlines and clean up
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+
   const repetitions: Repetition[] = [];
   const seen = new Map<string, number[]>();
 
@@ -104,7 +109,7 @@ const findSentenceRepetitions = (
   text: string,
   options: AnalysisOptions
 ): Repetition[] => {
-  const sentences = text.match(/[^\.!?]+[\.!?]+/g) || [];
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
   const repetitions: Repetition[] = [];
   const seen = new Map<string, number[]>();
 
@@ -354,7 +359,7 @@ export const scrollToMatch = (quill: any, index: number, length: number) => {
 
   // Scroll to the match
   const line = quill.getLine(index);
-  if (line && line[0] && line[0].domNode) {
+  if (line?.[0]?.domNode) {
     line[0].domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 };

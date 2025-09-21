@@ -10,6 +10,7 @@ import RepetitionList from '../components/analytics/RepetitionList';
 import Chart from '../components/analytics/Chart';
 import { useTextAnalysis } from '../hooks/useTextAnalysis';
 import { getColorForMatch } from '../utils/highlightUtils';
+import { Repetition } from '../types';
 
 const Home: NextPage = () => {
   const {
@@ -26,6 +27,47 @@ const Home: NextPage = () => {
     clearText,
     quillRef,
   } = useTextAnalysis();
+
+  const handleRepetitionHighlight = (repetition: Repetition) => {
+    if (!quillRef.current) return;
+
+    const editor = quillRef.current.getEditor();
+    if (!editor || !repetition.text) return;
+
+    // Clear existing highlights first
+    const length = editor.getLength();
+    editor.formatText(0, length, 'background', false);
+
+    // Find and highlight all occurrences of this repetition
+    const fullText = editor.getText();
+    const searchText = repetition.text;
+    const color = getColorForMatch(repetitions.indexOf(repetition));
+
+    let index = 0;
+    let occurrenceCount = 0;
+
+    while ((index = fullText.indexOf(searchText, index)) !== -1) {
+      editor.formatText(index, searchText.length, 'background', color);
+
+      // Scroll to the first occurrence
+      if (occurrenceCount === 0) {
+        editor.setSelection(index, searchText.length);
+        const bounds = editor.getBounds(index, searchText.length);
+        if (bounds) {
+          const editorContainer = editor.container;
+          if (editorContainer) {
+            editorContainer.scrollTo({
+              top: bounds.top + editorContainer.scrollTop - 100,
+              behavior: 'smooth',
+            });
+          }
+        }
+      }
+
+      index += searchText.length;
+      occurrenceCount++;
+    }
+  };
 
   return (
     <>
@@ -73,7 +115,11 @@ const Home: NextPage = () => {
                   options={options}
                   updateOption={updateOption}
                 />
-                <Editor content={content} onChange={setContent} quillRef={quillRef} />
+                <Editor
+                  content={content}
+                  onChange={setContent}
+                  quillRef={quillRef}
+                />
               </div>
 
               <StatsCards stats={stats} />
@@ -81,25 +127,9 @@ const Home: NextPage = () => {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <RepetitionList 
-                repetitions={repetitions} 
-                onHighlight={(repetition) => {
-                  // Highlight the repetition in the editor
-                  if (quillRef.current) {
-                    const editor = quillRef.current.getEditor();
-                    if (editor && repetition.indices && repetition.indices.length > 0) {
-                      // Clear existing highlights first
-                      const length = editor.getLength();
-                      editor.formatText(0, length, 'background', false);
-                      
-                      // Highlight all occurrences of this repetition
-                      repetition.indices.forEach((index) => {
-                        const color = getColorForMatch(repetitions.indexOf(repetition));
-                        editor.formatText(index, repetition.text.length, 'background', color);
-                      });
-                    }
-                  }
-                }}
+              <RepetitionList
+                repetitions={repetitions}
+                onHighlight={handleRepetitionHighlight}
               />
               <Chart stats={stats} />
             </div>

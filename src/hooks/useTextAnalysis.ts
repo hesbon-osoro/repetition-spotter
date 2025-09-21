@@ -5,11 +5,7 @@ import {
   DetectionLevel,
   AnalysisOptions,
 } from '../types';
-import {
-  analyzeText,
-  clearHighlights,
-  applyHighlights,
-} from '../utils/textProcessing';
+import { analyzeText, clearHighlights } from '../utils/textProcessing';
 import { useSelectionAnalysis } from './useSelectionAnalysis';
 
 const initialStats: RepetitionStats = {
@@ -41,9 +37,7 @@ export const useTextAnalysis = () => {
 
   // Auto-analyze when content changes (with debounce)
   useEffect(() => {
-    const textContent = Array.isArray(content)
-      ? content.map(item => item.insert || '').join('')
-      : content;
+    const textContent = extractPlainText(content);
 
     if (textContent.trim().length > 0) {
       const timer = setTimeout(() => {
@@ -58,9 +52,7 @@ export const useTextAnalysis = () => {
 
   const analyze = useCallback(() => {
     // Convert content to string for analysis
-    const textContent = Array.isArray(content)
-      ? content.map(item => item.insert || '').join('')
-      : content;
+    const textContent = extractPlainText(content);
 
     if (!textContent.trim()) return;
 
@@ -77,26 +69,24 @@ export const useTextAnalysis = () => {
 
         // Apply highlights for each repetition
         result.repetitions.forEach((repetition, index) => {
-          if (repetition.indices && repetition.indices.length > 0) {
+          if (repetition.text) {
             const color = getColorForRepetition(index);
+            const fullText = editor.getText();
+            const searchText = repetition.text;
 
-            // For each occurrence of this repetition, apply highlighting
-            repetition.indices.forEach(occurrenceIndex => {
-              // Find the actual text position in the editor
-              const textPosition = findTextPositionInEditor(
-                editor,
-                repetition.text,
-                occurrenceIndex
+            // Find and highlight all occurrences
+            let textIndex = 0;
+            while (
+              (textIndex = fullText.indexOf(searchText, textIndex)) !== -1
+            ) {
+              editor.formatText(
+                textIndex,
+                searchText.length,
+                'background',
+                color
               );
-              if (textPosition !== -1) {
-                editor.formatText(
-                  textPosition,
-                  repetition.text.length,
-                  'background',
-                  color
-                );
-              }
-            });
+              textIndex += searchText.length;
+            }
           }
         });
       }
@@ -126,9 +116,7 @@ export const useTextAnalysis = () => {
     (selectedText: string, range: any) => {
       if (quillRef.current) {
         // Convert content to string for analysis
-        const textContent = Array.isArray(content)
-          ? content.map(item => item.insert || '').join('')
-          : content;
+        const textContent = extractPlainText(content);
         analyzeSelection(selectedText, range, textContent, options);
       }
     },
@@ -172,6 +160,37 @@ export const useTextAnalysis = () => {
     scrollToMatch,
     selectionAnalysis,
   };
+};
+
+// Helper function to extract plain text from Quill content
+const extractPlainText = (content: string | any[]): string => {
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map(item => {
+        if (typeof item === 'string') {
+          return item;
+        }
+        if (item && typeof item === 'object' && item.insert) {
+          // Handle Quill Delta format
+          if (typeof item.insert === 'string') {
+            return item.insert;
+          }
+          // Handle embedded objects (images, etc.)
+          return '';
+        }
+        return '';
+      })
+      .join('')
+      .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
+      .trim();
+  }
+
+  return '';
 };
 
 // Helper function to get colors for repetitions

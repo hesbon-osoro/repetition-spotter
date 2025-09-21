@@ -6,13 +6,48 @@ import { applyHighlights } from '../../utils/textProcessing';
 import EditorLoader from '@/components/ui/EditorLoader';
 import { sampleText } from '@/lib/sampleText';
 
+// Helper function to extract plain text from Quill content
+const extractPlainText = (content: string | any[]): string => {
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map(item => {
+        if (typeof item === 'string') {
+          return item;
+        }
+        if (item && typeof item === 'object' && item.insert) {
+          // Handle Quill Delta format
+          if (typeof item.insert === 'string') {
+            return item.insert;
+          }
+          // Handle embedded objects (images, etc.)
+          return '';
+        }
+        return '';
+      })
+      .join('')
+      .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
+      .trim();
+  }
+
+  return '';
+};
+
 interface EditorProps {
   content: string | any[];
   onChange: (content: string | any[]) => void;
   quillRef?: React.RefObject<any>;
 }
 
-const Editor: React.FC<EditorProps> = ({ content, onChange, quillRef: externalQuillRef }) => {
+const Editor: React.FC<EditorProps> = ({
+  content,
+  onChange,
+  quillRef: externalQuillRef,
+}) => {
   const internalQuillRef = useRef<QuillWrapperRef>(null);
   const quillRef = externalQuillRef || internalQuillRef;
   const [isLoading, setIsLoading] = useState(true);
@@ -41,13 +76,11 @@ const Editor: React.FC<EditorProps> = ({ content, onChange, quillRef: externalQu
             .trim();
           if (selectedText.length > 0) {
             // Convert content to string for analysis
-            const textContent = Array.isArray(content)
-              ? content.map(item => item.insert || '').join('')
-              : content;
-            
+            const textContent = extractPlainText(content);
+
             // Analyze selection and get matches
             const analysis = analyzeSelection(selectedText, range, textContent);
-            
+
             // Apply highlights to similar text
             if (analysis && analysis.matches.length > 0 && quillRef.current) {
               const editor = quillRef.current.getEditor();
