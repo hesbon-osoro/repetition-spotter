@@ -5,7 +5,11 @@ import {
   DetectionLevel,
   AnalysisOptions,
 } from '../types';
-import { analyzeText, clearHighlights, applyHighlights } from '../utils/textProcessing';
+import {
+  analyzeText,
+  clearHighlights,
+  applyHighlights,
+} from '../utils/textProcessing';
 import { useSelectionAnalysis } from './useSelectionAnalysis';
 
 const initialStats: RepetitionStats = {
@@ -40,14 +44,14 @@ export const useTextAnalysis = () => {
     const textContent = Array.isArray(content)
       ? content.map(item => item.insert || '').join('')
       : content;
-    
+
     if (textContent.trim().length > 0) {
       const timer = setTimeout(() => {
         const result = analyzeText(textContent, detectionLevel, options);
         setRepetitions(result.repetitions);
         setStats(result.stats);
       }, 1000); // 1 second debounce
-      
+
       return () => clearTimeout(timer);
     }
   }, [content, detectionLevel, options]);
@@ -70,18 +74,27 @@ export const useTextAnalysis = () => {
       if (editor) {
         // Clear existing highlights first
         clearHighlights(editor);
-        
+
         // Apply highlights for each repetition
         result.repetitions.forEach((repetition, index) => {
           if (repetition.indices && repetition.indices.length > 0) {
             const color = getColorForRepetition(index);
-            
+
             // For each occurrence of this repetition, apply highlighting
-            repetition.indices.forEach((occurrenceIndex) => {
+            repetition.indices.forEach(occurrenceIndex => {
               // Find the actual text position in the editor
-              const textPosition = findTextPositionInEditor(editor, repetition.text, occurrenceIndex);
+              const textPosition = findTextPositionInEditor(
+                editor,
+                repetition.text,
+                occurrenceIndex
+              );
               if (textPosition !== -1) {
-                editor.formatText(textPosition, repetition.text.length, 'background', color);
+                editor.formatText(
+                  textPosition,
+                  repetition.text.length,
+                  'background',
+                  color
+                );
               }
             });
           }
@@ -124,7 +137,21 @@ export const useTextAnalysis = () => {
 
   const scrollToMatch = useCallback((index: number, length: number) => {
     if (quillRef.current) {
-      // Implementation for scrolling to match
+      const editor = quillRef.current.getEditor();
+
+      // Move caret to the match
+      editor.setSelection(index, length, 'user');
+
+      // Find the DOM node for the selection
+      const bounds = editor.getBounds(index, length);
+      const editorContainer = quillRef.current.container;
+
+      if (bounds && editorContainer) {
+        editorContainer.scrollTo({
+          top: bounds.top + editorContainer.scrollTop - 50, // add some padding
+          behavior: 'smooth',
+        });
+      }
     }
   }, []);
 
@@ -162,24 +189,28 @@ const getColorForRepetition = (index: number): string => {
 };
 
 // Helper function to find text position in Quill editor
-const findTextPositionInEditor = (editor: any, searchText: string, occurrenceIndex: number): number => {
+const findTextPositionInEditor = (
+  editor: any,
+  searchText: string,
+  occurrenceIndex: number
+): number => {
   if (!editor || !searchText) return -1;
-  
+
   const fullText = editor.getText();
   let currentIndex = 0;
   let foundOccurrences = 0;
-  
+
   while (currentIndex < fullText.length) {
     const index = fullText.indexOf(searchText, currentIndex);
     if (index === -1) break;
-    
+
     if (foundOccurrences === occurrenceIndex) {
       return index;
     }
-    
+
     foundOccurrences++;
     currentIndex = index + 1;
   }
-  
+
   return -1;
 };
