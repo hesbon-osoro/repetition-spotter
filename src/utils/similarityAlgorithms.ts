@@ -1,4 +1,4 @@
-import { MatchInfo } from '@/types';
+import { MatchInfo, QuillRange } from '@/types';
 
 export const calculateSimilarity = (text1: string, text2: string): number => {
   const words1 = text1
@@ -22,7 +22,7 @@ export const calculateSimilarity = (text1: string, text2: string): number => {
 export const findSemanticMatches = (
   selectedText: string,
   fullText: string,
-  range: { index: number; length: number },
+  range: QuillRange,
   similarityThreshold: number = 60
 ): MatchInfo[] => {
   const matches: MatchInfo[] = [];

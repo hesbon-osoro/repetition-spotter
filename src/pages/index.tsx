@@ -46,13 +46,23 @@ const Home: NextPage = () => {
     let index = 0;
     let occurrenceCount = 0;
 
-    while ((index = fullText.indexOf(searchText, index)) !== -1) {
-      editor.formatText(index, searchText.length, 'background', color);
+    // Use a more robust search that handles case-insensitive matching
+    const searchRegex = new RegExp(
+      searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      'gi'
+    );
+    let match;
+
+    while ((match = searchRegex.exec(fullText)) !== null) {
+      const matchIndex = match.index;
+      const matchLength = match[0].length;
+
+      editor.formatText(matchIndex, matchLength, 'background', color);
 
       // Scroll to the first occurrence
       if (occurrenceCount === 0) {
-        editor.setSelection(index, searchText.length);
-        const bounds = editor.getBounds(index, searchText.length);
+        editor.setSelection(matchIndex, matchLength);
+        const bounds = editor.getBounds(matchIndex, matchLength);
         if (bounds) {
           const editorContainer = editor.container;
           if (editorContainer) {
@@ -64,7 +74,6 @@ const Home: NextPage = () => {
         }
       }
 
-      index += searchText.length;
       occurrenceCount++;
     }
   };

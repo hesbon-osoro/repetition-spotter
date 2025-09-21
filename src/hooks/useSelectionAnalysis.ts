@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { MatchInfo, DetectionLevel } from '@/types';
+import { MatchInfo, DetectionLevel, QuillRange } from '@/types';
 import { findSemanticMatches } from '@/utils/similarityAlgorithms';
 
 export interface SelectionAnalysis {
@@ -19,7 +19,7 @@ export const useSelectionAnalysis = () => {
   const analyzeSelection = useCallback(
     (
       selectedText: string,
-      range: { index: number; length: number },
+      range: QuillRange,
       fullText: string,
       options: {
         ignoreCase?: boolean;

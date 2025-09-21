@@ -1,31 +1,45 @@
 // src/components/editor/QuillWrapper.tsx
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import dynamic from 'next/dynamic';
+import { QuillEditor, QuillRange } from '../../types';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
-}) as React.ComponentType<any>;
+}) as React.ComponentType<{
+  ref: React.RefObject<QuillEditor>;
+  value: string | QuillDelta[];
+  onChange: (value: string | QuillDelta[]) => void;
+  onSelectionChange?: (range: QuillRange | null) => void;
+  placeholder?: string;
+  modules: object;
+  theme: string;
+}>;
+
+interface QuillDelta {
+  insert: string;
+  attributes?: Record<string, unknown>;
+}
 
 interface QuillWrapperProps {
-  value: string | any[];
-  onChange: (value: string | any[]) => void;
-  onSelectionChange?: (range: { index: number; length: number } | null) => void;
+  value: string | QuillDelta[];
+  onChange: (value: string | QuillDelta[]) => void;
+  onSelectionChange?: (range: QuillRange | null) => void;
   placeholder?: string;
 }
 
 export interface QuillWrapperRef {
-  getEditor: () => any;
+  getEditor: () => QuillEditor | null;
   getText: (index?: number, length?: number) => string;
 }
 
 const QuillWrapper = forwardRef<QuillWrapperRef, QuillWrapperProps>(
   ({ value, onChange, onSelectionChange, placeholder }, ref) => {
-    const quillRef = useRef<any>(null);
+    const quillRef = useRef<QuillEditor>(null);
 
     useImperativeHandle(ref, () => ({
-      getEditor: () => quillRef.current?.getEditor?.(),
+      getEditor: () => quillRef.current || null,
       getText: (index?: number, length?: number) => {
-        const editor = quillRef.current?.getEditor?.();
+        const editor = quillRef.current;
         if (!editor) return '';
         if (index !== undefined && length !== undefined) {
           return editor.getText(index, length);

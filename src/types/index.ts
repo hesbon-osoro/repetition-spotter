@@ -26,6 +26,34 @@ export interface MatchInfo {
   isSemantic?: boolean;
 }
 
+// Quill Editor Types
+export interface QuillEditor {
+  getText: (index?: number, length?: number) => string;
+  getLength: () => number;
+  formatText: (
+    index: number,
+    length: number,
+    format: string,
+    value: string | boolean
+  ) => void;
+  setSelection: (index: number, length: number, source?: string) => void;
+  getBounds: (
+    index: number,
+    length: number
+  ) => { top: number; left: number; height: number; width: number } | null;
+  getLine: (index: number) => Array<{ domNode: HTMLElement }> | null;
+  focus: () => void;
+  container: HTMLElement;
+}
+
+// QuillInstance is actually the QuillEditor itself
+export type QuillInstance = QuillEditor;
+
+export interface QuillRange {
+  index: number;
+  length: number;
+}
+
 export interface RepetitionStats {
   wordCount: number;
   repetitionCount: number;

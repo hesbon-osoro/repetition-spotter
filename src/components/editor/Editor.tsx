@@ -5,9 +5,15 @@ import { useSelectionAnalysis } from '../../hooks/useSelectionAnalysis';
 import { applyHighlights } from '../../utils/textProcessing';
 import EditorLoader from '@/components/ui/EditorLoader';
 import { sampleText } from '@/lib/sampleText';
+import { QuillRange } from '../../types';
+
+interface QuillDelta {
+  insert: string;
+  attributes?: Record<string, unknown>;
+}
 
 // Helper function to extract plain text from Quill content
-const extractPlainText = (content: string | any[]): string => {
+const extractPlainText = (content: string | QuillDelta[]): string => {
   if (typeof content === 'string') {
     return content;
   }
@@ -18,7 +24,7 @@ const extractPlainText = (content: string | any[]): string => {
         if (typeof item === 'string') {
           return item;
         }
-        if (item && typeof item === 'object' && item.insert) {
+        if (item && typeof item === 'object' && 'insert' in item) {
           // Handle Quill Delta format
           if (typeof item.insert === 'string') {
             return item.insert;
@@ -38,8 +44,8 @@ const extractPlainText = (content: string | any[]): string => {
 };
 
 interface EditorProps {
-  content: string | any[];
-  onChange: (content: string | any[]) => void;
+  content: string | QuillDelta[];
+  onChange: (content: string | QuillDelta[]) => void;
   quillRef?: React.RefObject<QuillWrapperRef>;
 }
 
@@ -59,7 +65,7 @@ const Editor: React.FC<EditorProps> = ({
       const timer = setTimeout(() => {
         onChange(sampleText);
         setIsLoading(false);
-      }, 3000);
+      }, 2000); // Reduced from 3000ms to 2000ms
 
       return () => clearTimeout(timer);
     } else {
@@ -68,7 +74,7 @@ const Editor: React.FC<EditorProps> = ({
   }, [content, onChange]);
 
   const handleSelectionChange = useCallback(
-    (range: { index: number; length: number } | null) => {
+    (range: QuillRange | null) => {
       if (range && range.length > 0 && quillRef.current) {
         try {
           const selectedText = quillRef.current
@@ -98,7 +104,20 @@ const Editor: React.FC<EditorProps> = ({
   );
 
   if (isLoading) {
-    return <EditorLoader message="Loading editor with sample text..." />;
+    return (
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">
+              WYSIWYG Editor
+            </h2>
+          </div>
+        </div>
+        <div className="p-6">
+          <EditorLoader message="Loading editor with sample text..." />
+        </div>
+      </div>
+    );
   }
 
   return (

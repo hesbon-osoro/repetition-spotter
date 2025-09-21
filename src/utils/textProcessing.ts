@@ -3,6 +3,9 @@ import {
   RepetitionStats,
   DetectionLevel,
   AnalysisOptions,
+  QuillEditor,
+  QuillRange,
+  MatchInfo,
 } from '../types';
 
 export const analyzeText = (
@@ -178,7 +181,7 @@ const findPhraseRepetitions = (
 
 const findWordRepetitions = (
   text: string,
-  _options: AnalysisOptions
+  options: AnalysisOptions
 ): Repetition[] => {
   const words = text.toLowerCase().match(/\b\w+\b/g) || [];
   const wordCount: Record<string, number> = {};
@@ -304,38 +307,50 @@ export const findParagraphsRepetitions = (
 
 // Function to apply highlights with different colors for each match
 export const applyHighlights = (
-  quill: any,
-  matches: any[],
+  quill: QuillEditor | null,
+  matches: MatchInfo[],
   selectedText: string,
-  selectionRange: { index: number; length: number }
+  selectionRange: QuillRange
 ) => {
-  if (!quill) return;
+  if (!quill || typeof quill.getLength !== 'function') return;
 
-  // Clear existing highlights
-  const length = quill.getLength();
-  quill.formatText(0, length, 'background', false);
+  try {
+    // Clear existing highlights
+    const length = quill.getLength();
+    if (length > 0) {
+      quill.formatText(0, length, 'background', false);
+    }
 
-  // Highlight the selection itself
-  quill.formatText(
-    selectionRange.index,
-    selectionRange.length,
-    'background',
-    '#93c5fd'
-  );
+    // Highlight the selection itself
+    quill.formatText(
+      selectionRange.index,
+      selectionRange.length,
+      'background',
+      '#93c5fd'
+    );
 
-  // Highlight each match with a different color
-  matches.forEach((match, index) => {
-    const color = getColorForMatch(index);
-    quill.formatText(match.index, match.text.length, 'background', color);
-  });
+    // Highlight each match with a different color
+    matches.forEach((match, index) => {
+      const color = getColorForMatch(index);
+      quill.formatText(match.index, match.text.length, 'background', color);
+    });
+  } catch (error) {
+    console.warn('Error applying highlights:', error);
+  }
 };
 
-export const clearHighlights = (quill: any) => {
-  if (!quill) return;
+export const clearHighlights = (quill: QuillEditor | null) => {
+  if (!quill || typeof quill.getLength !== 'function') return;
 
-  const length = quill.getLength();
-  quill.formatText(0, length, 'background', false);
-  quill.formatText(0, length, 'border', false);
+  try {
+    const length = quill.getLength();
+    if (length > 0) {
+      quill.formatText(0, length, 'background', false);
+      quill.formatText(0, length, 'border', false);
+    }
+  } catch (error) {
+    console.warn('Error clearing highlights:', error);
+  }
 };
 
 const getColorForMatch = (index: number): string => {
@@ -351,15 +366,23 @@ const getColorForMatch = (index: number): string => {
   return colors[index % colors.length];
 };
 
-export const scrollToMatch = (quill: any, index: number, length: number) => {
-  if (!quill) return;
+export const scrollToMatch = (
+  quill: QuillEditor | null,
+  index: number,
+  length: number
+) => {
+  if (!quill || typeof quill.setSelection !== 'function') return;
 
-  quill.setSelection(index, length);
-  quill.focus();
+  try {
+    quill.setSelection(index, length);
+    quill.focus();
 
-  // Scroll to the match
-  const line = quill.getLine(index);
-  if (line?.[0]?.domNode) {
-    line[0].domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scroll to the match
+    const line = quill.getLine(index);
+    if (line?.[0]?.domNode) {
+      line[0].domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } catch (error) {
+    console.warn('Error scrolling to match:', error);
   }
 };

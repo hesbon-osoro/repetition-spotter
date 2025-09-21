@@ -4,9 +4,16 @@ import {
   RepetitionStats,
   DetectionLevel,
   AnalysisOptions,
+  QuillEditor,
+  QuillRange,
 } from '../types';
 import { analyzeText, clearHighlights } from '../utils/textProcessing';
 import { useSelectionAnalysis } from './useSelectionAnalysis';
+
+interface QuillDelta {
+  insert: string;
+  attributes?: Record<string, unknown>;
+}
 
 const initialStats: RepetitionStats = {
   wordCount: 0,
@@ -24,13 +31,13 @@ const initialOptions: AnalysisOptions = {
 };
 
 export const useTextAnalysis = () => {
-  const [content, setContent] = useState<string | any[]>('');
+  const [content, setContent] = useState<string | QuillDelta[]>('');
   const [repetitions, setRepetitions] = useState<Repetition[]>([]);
   const [stats, setStats] = useState<RepetitionStats>(initialStats);
   const [detectionLevel, setDetectionLevel] =
     useState<DetectionLevel>('paragraph');
   const [options, setOptions] = useState<AnalysisOptions>(initialOptions);
-  const quillRef = useRef<any>(null);
+  const quillRef = useRef<QuillEditor>(null);
 
   const { analyzeSelection, clearSelectionAnalysis, selectionAnalysis } =
     useSelectionAnalysis();
@@ -44,11 +51,46 @@ export const useTextAnalysis = () => {
         const result = analyzeText(textContent, detectionLevel, options);
         setRepetitions(result.repetitions);
         setStats(result.stats);
-      }, 1000); // 1 second debounce
+
+        // Apply highlights to the editor after analysis with a small delay
+        // to ensure the editor is fully loaded
+        setTimeout(() => {
+          if (quillRef.current && result.repetitions.length > 0) {
+            const editor = quillRef.current.getEditor();
+            if (editor) {
+              // Clear existing highlights first
+              clearHighlights(editor);
+
+              // Apply highlights for each repetition
+              result.repetitions.forEach((repetition, index) => {
+                if (repetition.text) {
+                  const color = getColorForRepetition(index);
+                  const fullText = editor.getText();
+                  const searchText = repetition.text;
+
+                  // Find and highlight all occurrences
+                  let textIndex = 0;
+                  while (
+                    (textIndex = fullText.indexOf(searchText, textIndex)) !== -1
+                  ) {
+                    editor.formatText(
+                      textIndex,
+                      searchText.length,
+                      'background',
+                      color
+                    );
+                    textIndex += searchText.length;
+                  }
+                }
+              });
+            }
+          }
+        }, 1000); // Increased delay to ensure editor is ready
+      }, 500); // Reduced debounce for faster response
 
       return () => clearTimeout(timer);
     }
-  }, [content, detectionLevel, options]);
+  }, [content, detectionLevel, options, quillRef]);
 
   const analyze = useCallback(() => {
     // Convert content to string for analysis
@@ -113,7 +155,7 @@ export const useTextAnalysis = () => {
   }, [clearHighlightsHandler]);
 
   const handleSelectionAnalysis = useCallback(
-    (selectedText: string, range: { index: number; length: number }) => {
+    (selectedText: string, range: QuillRange) => {
       if (quillRef.current) {
         // Convert content to string for analysis
         const textContent = extractPlainText(content);
@@ -163,7 +205,7 @@ export const useTextAnalysis = () => {
 };
 
 // Helper function to extract plain text from Quill content
-const extractPlainText = (content: string | any[]): string => {
+const extractPlainText = (content: string | QuillDelta[]): string => {
   if (typeof content === 'string') {
     return content;
   }
