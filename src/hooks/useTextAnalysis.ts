@@ -7,6 +7,7 @@ import {
   QuillEditor,
   QuillRange,
 } from '../types';
+import type { QuillWrapperRef } from '@/components/editor/QuillWrapper';
 import { analyzeText, clearHighlights } from '../utils/textProcessing';
 import { useSelectionAnalysis } from './useSelectionAnalysis';
 
@@ -37,7 +38,8 @@ export const useTextAnalysis = () => {
   const [detectionLevel, setDetectionLevel] =
     useState<DetectionLevel>('paragraph');
   const [options, setOptions] = useState<AnalysisOptions>(initialOptions);
-  const quillRef = useRef<QuillEditor>(null);
+  // Ref to the QuillWrapper, which exposes getEditor() returning the Quill instance
+  const quillRef = useRef<QuillWrapperRef>(null);
 
   const { analyzeSelection, clearSelectionAnalysis, selectionAnalysis } =
     useSelectionAnalysis();
@@ -57,32 +59,37 @@ export const useTextAnalysis = () => {
         setTimeout(() => {
           if (quillRef.current && result.repetitions.length > 0) {
             const editor = quillRef.current.getEditor();
-            if (editor) {
-              // Clear existing highlights first
-              clearHighlights(editor);
+            if (editor && typeof editor.getText === 'function') {
+              try {
+                // Clear existing highlights first
+                clearHighlights(editor);
 
-              // Apply highlights for each repetition
-              result.repetitions.forEach((repetition, index) => {
-                if (repetition.text) {
-                  const color = getColorForRepetition(index);
-                  const fullText = editor.getText();
-                  const searchText = repetition.text;
+                // Apply highlights for each repetition
+                result.repetitions.forEach((repetition, index) => {
+                  if (repetition.text) {
+                    const color = getColorForRepetition(index);
+                    const fullText = editor.getText();
+                    const searchText = repetition.text;
 
-                  // Find and highlight all occurrences
-                  let textIndex = 0;
-                  while (
-                    (textIndex = fullText.indexOf(searchText, textIndex)) !== -1
-                  ) {
-                    editor.formatText(
-                      textIndex,
-                      searchText.length,
-                      'background',
-                      color
-                    );
-                    textIndex += searchText.length;
+                    // Find and highlight all occurrences
+                    let textIndex = 0;
+                    while (
+                      (textIndex = fullText.indexOf(searchText, textIndex)) !==
+                      -1
+                    ) {
+                      editor.formatText(
+                        textIndex,
+                        searchText.length,
+                        'background',
+                        color
+                      );
+                      textIndex += searchText.length;
+                    }
                   }
-                }
-              });
+                });
+              } catch (error) {
+                console.warn('Error applying auto-analysis highlights:', error);
+              }
             }
           }
         }, 1000); // Increased delay to ensure editor is ready
@@ -105,32 +112,36 @@ export const useTextAnalysis = () => {
     // Apply highlights to the editor
     if (quillRef.current && result.repetitions.length > 0) {
       const editor = quillRef.current.getEditor();
-      if (editor) {
-        // Clear existing highlights first
-        clearHighlights(editor);
+      if (editor && typeof editor.getText === 'function') {
+        try {
+          // Clear existing highlights first
+          clearHighlights(editor);
 
-        // Apply highlights for each repetition
-        result.repetitions.forEach((repetition, index) => {
-          if (repetition.text) {
-            const color = getColorForRepetition(index);
-            const fullText = editor.getText();
-            const searchText = repetition.text;
+          // Apply highlights for each repetition
+          result.repetitions.forEach((repetition, index) => {
+            if (repetition.text) {
+              const color = getColorForRepetition(index);
+              const fullText = editor.getText();
+              const searchText = repetition.text;
 
-            // Find and highlight all occurrences
-            let textIndex = 0;
-            while (
-              (textIndex = fullText.indexOf(searchText, textIndex)) !== -1
-            ) {
-              editor.formatText(
-                textIndex,
-                searchText.length,
-                'background',
-                color
-              );
-              textIndex += searchText.length;
+              // Find and highlight all occurrences
+              let textIndex = 0;
+              while (
+                (textIndex = fullText.indexOf(searchText, textIndex)) !== -1
+              ) {
+                editor.formatText(
+                  textIndex,
+                  searchText.length,
+                  'background',
+                  color
+                );
+                textIndex += searchText.length;
+              }
             }
-          }
-        });
+          });
+        } catch (error) {
+          console.warn('Error applying manual analysis highlights:', error);
+        }
       }
     }
   }, [content, detectionLevel, options, quillRef]);
@@ -166,22 +177,25 @@ export const useTextAnalysis = () => {
   );
 
   const scrollToMatch = useCallback((index: number, length: number) => {
-    if (quillRef.current) {
-      const editor = quillRef.current.getEditor();
+    if (!quillRef.current) return;
+    const editor = quillRef.current.getEditor();
+    if (!editor) return;
 
-      // Move caret to the match
+    // Move caret and focus editor
+    try {
       editor.setSelection(index, length, 'user');
+      if (typeof editor.focus === 'function') editor.focus();
 
-      // Find the DOM node for the selection
       const bounds = editor.getBounds(index, length);
-      const editorContainer = quillRef.current.container;
-
-      if (bounds && editorContainer) {
-        editorContainer.scrollTo({
-          top: bounds.top + editorContainer.scrollTop - 50, // add some padding
+      const container = editor.container as HTMLElement | undefined;
+      if (bounds && container) {
+        container.scrollTo({
+          top: bounds.top + container.scrollTop - 50,
           behavior: 'smooth',
         });
       }
+    } catch (e) {
+      console.warn('scrollToMatch error:', e);
     }
   }, []);
 
@@ -207,7 +221,18 @@ export const useTextAnalysis = () => {
 // Helper function to extract plain text from Quill content
 const extractPlainText = (content: string | QuillDelta[]): string => {
   if (typeof content === 'string') {
-    return content;
+    // Remove HTML tags and normalize whitespace
+    return content
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+      .replace(/&amp;/g, '&') // Replace HTML entities
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
+      .trim();
   }
 
   if (Array.isArray(content)) {
@@ -228,6 +253,13 @@ const extractPlainText = (content: string | QuillDelta[]): string => {
       })
       .join('')
       .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+      .replace(/&amp;/g, '&') // Replace HTML entities
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ') // Normalize whitespace
       .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
       .trim();
   }

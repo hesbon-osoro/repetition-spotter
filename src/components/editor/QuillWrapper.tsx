@@ -3,17 +3,10 @@ import { useRef, forwardRef, useImperativeHandle } from 'react';
 import dynamic from 'next/dynamic';
 import { QuillEditor, QuillRange } from '../../types';
 
+// Use a loose typing for ReactQuill since its ref is the component which exposes getEditor()
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
-}) as React.ComponentType<{
-  ref: React.RefObject<QuillEditor>;
-  value: string | QuillDelta[];
-  onChange: (value: string | QuillDelta[]) => void;
-  onSelectionChange?: (range: QuillRange | null) => void;
-  placeholder?: string;
-  modules: object;
-  theme: string;
-}>;
+}) as React.ComponentType<any>;
 
 interface QuillDelta {
   insert: string;
@@ -34,12 +27,22 @@ export interface QuillWrapperRef {
 
 const QuillWrapper = forwardRef<QuillWrapperRef, QuillWrapperProps>(
   ({ value, onChange, onSelectionChange, placeholder }, ref) => {
-    const quillRef = useRef<QuillEditor>(null);
+    // ReactQuill assigns the component instance to this ref, which has getEditor()
+    const reactQuillRef = useRef<any>(null);
 
     useImperativeHandle(ref, () => ({
-      getEditor: () => quillRef.current || null,
+      getEditor: (): QuillEditor | null => {
+        const rq = reactQuillRef.current;
+        const editor: QuillEditor | null = rq?.getEditor
+          ? rq.getEditor()
+          : null;
+        return editor || null;
+      },
       getText: (index?: number, length?: number) => {
-        const editor = quillRef.current;
+        const rq = reactQuillRef.current;
+        const editor: QuillEditor | null = rq?.getEditor
+          ? rq.getEditor()
+          : null;
         if (!editor) return '';
         if (index !== undefined && length !== undefined) {
           return editor.getText(index, length);
@@ -68,7 +71,7 @@ const QuillWrapper = forwardRef<QuillWrapperRef, QuillWrapperProps>(
 
     return (
       <ReactQuill
-        ref={quillRef}
+        ref={reactQuillRef}
         value={value}
         onChange={onChange}
         modules={modules}

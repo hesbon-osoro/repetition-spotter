@@ -7,6 +7,7 @@ import Editor from '../components/editor/Editor';
 import Toolbar from '../components/editor/Toolbar';
 import StatsCards from '../components/analytics/StatsCards';
 import RepetitionList from '../components/analytics/RepetitionList';
+import SelectionAnalysis from '@/components/analytics/SelectionAnalysis';
 import Chart from '../components/analytics/Chart';
 import { useTextAnalysis } from '../hooks/useTextAnalysis';
 import { getColorForMatch } from '../utils/highlightUtils';
@@ -26,55 +27,64 @@ const Home: NextPage = () => {
     clearHighlights,
     clearText,
     quillRef,
+    scrollToMatch,
+    selectionAnalysis,
   } = useTextAnalysis();
 
   const handleRepetitionHighlight = (repetition: Repetition) => {
     if (!quillRef.current) return;
 
     const editor = quillRef.current.getEditor();
-    if (!editor || !repetition.text) return;
+    if (!editor || !repetition.text || typeof editor.getLength !== 'function')
+      return;
 
-    // Clear existing highlights first
-    const length = editor.getLength();
-    editor.formatText(0, length, 'background', false);
-
-    // Find and highlight all occurrences of this repetition
-    const fullText = editor.getText();
-    const searchText = repetition.text;
-    const color = getColorForMatch(repetitions.indexOf(repetition));
-
-    let index = 0;
-    let occurrenceCount = 0;
-
-    // Use a more robust search that handles case-insensitive matching
-    const searchRegex = new RegExp(
-      searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-      'gi'
-    );
-    let match;
-
-    while ((match = searchRegex.exec(fullText)) !== null) {
-      const matchIndex = match.index;
-      const matchLength = match[0].length;
-
-      editor.formatText(matchIndex, matchLength, 'background', color);
-
-      // Scroll to the first occurrence
-      if (occurrenceCount === 0) {
-        editor.setSelection(matchIndex, matchLength);
-        const bounds = editor.getBounds(matchIndex, matchLength);
-        if (bounds) {
-          const editorContainer = editor.container;
-          if (editorContainer) {
-            editorContainer.scrollTo({
-              top: bounds.top + editorContainer.scrollTop - 100,
-              behavior: 'smooth',
-            });
-          }
-        }
+    try {
+      // Clear existing highlights first
+      const length = editor.getLength();
+      if (length > 0) {
+        editor.formatText(0, length, 'background', false);
       }
 
-      occurrenceCount++;
+      // Find and highlight all occurrences of this repetition
+      const fullText = editor.getText();
+      const searchText = repetition.text;
+      const color = getColorForMatch(repetitions.indexOf(repetition));
+
+      let index = 0;
+      let occurrenceCount = 0;
+
+      // Use a more robust search that handles case-insensitive matching
+      const searchRegex = new RegExp(
+        searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        'gi'
+      );
+      let match;
+
+      while ((match = searchRegex.exec(fullText)) !== null) {
+        const matchIndex = match.index;
+        const matchLength = match[0].length;
+
+        editor.formatText(matchIndex, matchLength, 'background', color);
+
+        // Scroll to the first occurrence
+        if (occurrenceCount === 0) {
+          editor.setSelection(matchIndex, matchLength);
+          const bounds = editor.getBounds(matchIndex, matchLength);
+          if (bounds) {
+            const editorContainer = editor.container;
+            if (editorContainer) {
+              editorContainer.scrollTo({
+                top: bounds.top + editorContainer.scrollTop - 100,
+                behavior: 'smooth',
+              });
+            }
+          }
+        }
+
+        occurrenceCount++;
+      }
+    } catch (error) {
+      console.warn('Error highlighting repetition:', error);
     }
   };
 
@@ -136,6 +146,12 @@ const Home: NextPage = () => {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
+              {selectionAnalysis && (
+                <SelectionAnalysis
+                  analysis={selectionAnalysis}
+                  onScrollToMatch={scrollToMatch}
+                />
+              )}
               <RepetitionList
                 repetitions={repetitions}
                 onHighlight={handleRepetitionHighlight}

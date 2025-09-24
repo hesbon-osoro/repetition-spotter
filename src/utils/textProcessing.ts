@@ -42,10 +42,10 @@ const findParagraphRepetitions = (
   text: string,
   options: AnalysisOptions
 ): Repetition[] => {
-  // Split by double newlines and clean up
+  // Split by multiple newlines, HTML paragraph tags, or other paragraph indicators
   const paragraphs = text
-    .split(/\n\s*\n/)
-    .map(p => p.trim())
+    .split(/\n\s*\n|<\/p>\s*<p[^>]*>|<\/p>\s*<br\s*\/?>\s*<p[^>]*>/i)
+    .map(p => p.replace(/<[^>]*>/g, '').trim()) // Remove HTML tags
     .filter(p => p.length > 0);
 
   const repetitions: Repetition[] = [];
@@ -247,7 +247,11 @@ export const findParagraphsRepetitions = (
   text: string,
   options: AnalysisOptions
 ): Repetition[] => {
-  const paragraphs = text.split('\n\n').filter(p => p.trim().length > 0);
+  // Split by multiple newlines, HTML paragraph tags, or other paragraph indicators
+  const paragraphs = text
+    .split(/\n\s*\n|<\/p>\s*<p[^>]*>|<\/p>\s*<br\s*\/?>\s*<p[^>]*>/i)
+    .map(p => p.replace(/<[^>]*>/g, '').trim()) // Remove HTML tags
+    .filter(p => p.length > 0);
   const repetitions: Repetition[] = [];
   const seen = new Map<string, { indices: number[]; text: string }>();
 

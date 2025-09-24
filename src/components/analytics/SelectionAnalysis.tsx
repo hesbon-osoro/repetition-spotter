@@ -12,11 +12,11 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
   if (!analysis) return null;
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center">
           <svg
-            className="w-5 h-5 text-blue-600 mr-2"
+            className="w-5 h-5 text-green-600 mr-2"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -25,19 +25,19 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span className="text-sm font-medium text-blue-800">
+          <span className="text-sm font-medium text-green-800">
             Selection Analysis
           </span>
         </div>
-        <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
+        <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
           {analysis.matches.length + 1} total
         </span>
       </div>
 
-      <p className="text-sm text-blue-700 mb-2">
+      <p className="text-sm text-green-700 mb-2">
         &quot;
         {analysis.selectedText.length > 100
           ? analysis.selectedText.substring(0, 100) + '...'
@@ -45,7 +45,7 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
         &quot;
       </p>
 
-      <div className="flex items-center space-x-4 text-xs text-blue-600 mb-3">
+      <div className="flex items-center space-x-4 text-xs text-green-600 mb-3">
         <span className="capitalize">{analysis.level} level</span>
         <span>{analysis.wordCount} words</span>
         <span>{analysis.charCount} chars</span>
@@ -58,9 +58,9 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
             Exact Matches ({analysis.exactMatches.length})
           </h4>
           {analysis.exactMatches.map((match, index) => (
-            <button
+            <div
               key={`exact-${match.index}-${match.text.length}`}
-              className="w-full p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors mb-2 text-left"
+              className="w-full p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors mb-2"
               onClick={() => onScrollToMatch(match.index, match.text.length)}
             >
               <div className="flex items-center justify-between mb-1">
@@ -77,7 +77,7 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
                 </div>
               </div>
               <p className="text-xs text-gray-600 italic">{match.context}</p>
-            </button>
+            </div>
           ))}
         </>
       )}
@@ -89,9 +89,9 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
             Similar Content ({analysis.semanticMatches.length})
           </h4>
           {analysis.semanticMatches.map((match, index) => (
-            <button
+            <div
               key={`semantic-${match.index}-${match.text.length}`}
-              className="w-full p-3 border border-blue-200 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors mb-2 text-left"
+              className="w-full p-3 border border-blue-200 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors mb-2"
               onClick={() => onScrollToMatch(match.index, match.text.length)}
             >
               <div className="flex items-center justify-between mb-1">
@@ -108,7 +108,7 @@ const SelectionAnalysis: React.FC<SelectionAnalysisProps> = ({
                 </div>
               </div>
               <p className="text-xs text-blue-600 italic">{match.context}</p>
-            </button>
+            </div>
           ))}
         </>
       )}

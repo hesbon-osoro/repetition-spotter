@@ -11,7 +11,7 @@ A sophisticated web application that detects and visualizes text repetitions wit
 
 [🚀 Live Demo](https://repetition-spotter.vercel.app/) • [✨ Features](#-features) • [📦 Installation](#-installation) • [📖 Usage](#-usage)
 
----
+[![preview](./public/prev/prev.PNG)](https://repetition-spotter.vercel.app/)
 
 ## 📑 Table of Contents
 
@@ -198,3 +198,11 @@ We welcome contributions!
 - [Chart.js](https://www.chartjs.org/) for data visualization
 - [Tailwind CSS](https://tailwindcss.com/) for styling system
 - [Vercel](https://vercel.com/) for hosting and deployment
+
+## 📸 Screenshots
+
+[![preview](./public/prev/prev.PNG)](https://repetition-spotter.vercel.app/)
+
+[![preview](./public/prev/prev0.PNG)](https://repetition-spotter.vercel.app/)
+
+[![preview](./public/prev/prev1.PNG)](https://repetition-spotter.vercel.app/)

@@ -15,7 +15,18 @@ interface QuillDelta {
 // Helper function to extract plain text from Quill content
 const extractPlainText = (content: string | QuillDelta[]): string => {
   if (typeof content === 'string') {
-    return content;
+    // Remove HTML tags and normalize whitespace
+    return content
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+      .replace(/&amp;/g, '&') // Replace HTML entities
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
+      .trim();
   }
 
   if (Array.isArray(content)) {
@@ -36,6 +47,13 @@ const extractPlainText = (content: string | QuillDelta[]): string => {
       })
       .join('')
       .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+      .replace(/&amp;/g, '&') // Replace HTML entities
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ') // Normalize whitespace
       .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
       .trim();
   }
@@ -46,7 +64,7 @@ const extractPlainText = (content: string | QuillDelta[]): string => {
 interface EditorProps {
   content: string | QuillDelta[];
   onChange: (content: string | QuillDelta[]) => void;
-  quillRef?: React.RefObject<QuillWrapperRef>;
+  quillRef?: React.RefObject<QuillWrapperRef | null>;
 }
 
 const Editor: React.FC<EditorProps> = ({

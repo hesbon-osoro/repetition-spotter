@@ -43,8 +43,6 @@ const RepetitionList: React.FC<RepetitionListProps> = ({
 
   return (
     <Card title="Detected Repetitions">
-      <p className="text-sm text-gray-500 mb-4">Click to highlight matches</p>
-
       <div className="mb-4">
         <input
           type="text"
@@ -57,7 +55,7 @@ const RepetitionList: React.FC<RepetitionListProps> = ({
         {repetitions.map(repetition => (
           <div
             key={repetition.id}
-            className="repetition-item"
+            className="repetition-item cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group"
             onClick={() => handleRepetitionClick(repetition)}
           >
             <div className="flex items-center justify-between mb-2">
