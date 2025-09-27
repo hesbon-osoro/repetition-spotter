@@ -37,6 +37,7 @@ export default function ExternalScripts() {
         type="module"
         strategy="afterInteractive"
       />
+      {/* <Script src="/fallback.js" strategy="afterInteractive" type="module" /> */}
     </>
   );
 }
