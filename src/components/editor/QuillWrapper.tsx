@@ -4,9 +4,20 @@ import dynamic from 'next/dynamic';
 import { QuillEditor, QuillRange } from '../../types';
 
 // Use a loose typing for ReactQuill since its ref is the component which exposes getEditor()
+type ReactQuillLikeProps = {
+  value: string | QuillDelta[];
+  onChange: (value: string | QuillDelta[]) => void;
+  modules?: unknown;
+  theme?: string;
+  placeholder?: string;
+  onSelectionChange?: (range: QuillRange | null) => void;
+};
+
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
-}) as React.ComponentType<any>;
+}) as unknown as React.ForwardRefExoticComponent<
+  ReactQuillLikeProps & React.RefAttributes<{ getEditor?: () => QuillEditor }>
+>;
 
 interface QuillDelta {
   insert: string;
@@ -28,7 +39,9 @@ export interface QuillWrapperRef {
 const QuillWrapper = forwardRef<QuillWrapperRef, QuillWrapperProps>(
   ({ value, onChange, onSelectionChange, placeholder }, ref) => {
     // ReactQuill assigns the component instance to this ref, which has getEditor()
-    const reactQuillRef = useRef<any>(null);
+    const reactQuillRef = useRef<{ getEditor?: () => QuillEditor } | null>(
+      null
+    );
 
     useImperativeHandle(ref, () => ({
       getEditor: (): QuillEditor | null => {

@@ -134,7 +134,7 @@ const findOriginalIndex = (
     i < originalText.length && processedCount < processedIndex;
     i++
   ) {
-    const char = originalText[i];
+    const char = originalText.charAt(i);
 
     if (ignorePunctuation && /[^\w\s]/.test(char)) {
       continue;

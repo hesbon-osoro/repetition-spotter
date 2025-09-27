@@ -79,16 +79,18 @@ const Editor: React.FC<EditorProps> = ({
 
   // Load sample text if empty
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (!content) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         onChange(sampleText);
         setIsLoading(false);
       }, 2000); // Reduced from 3000ms to 2000ms
-
-      return () => clearTimeout(timer);
     } else {
       setIsLoading(false);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [content, onChange]);
 
   const handleSelectionChange = useCallback(

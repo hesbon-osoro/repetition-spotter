@@ -17,8 +17,26 @@ const eslintConfig = [
       '.next/**',
       'out/**',
       'build/**',
+      'public/**',
       'next-env.d.ts',
     ],
+  },
+  {
+    rules: {
+      // Reduce CI noise; adjust to ["warn", { allow: ["warn", "error"] }] if preferred
+      'no-console': 'off',
+    },
+  },
+  {
+    files: [
+      'src/components/editor/QuillWrapper.tsx',
+      'src/lib/gtag.ts',
+      'src/utils/fileParsers.ts',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+    },
   },
 ];
 

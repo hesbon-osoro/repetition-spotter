@@ -3,7 +3,7 @@ import { QuillEditor, QuillRange, MatchInfo } from '../types';
 export const applyHighlights = (
   quill: QuillEditor | null,
   matches: MatchInfo[],
-  selectedText: string,
+  _selectedText: string,
   selectionRange: QuillRange
 ) => {
   if (!quill || typeof quill.getLength !== 'function') return;
@@ -66,8 +66,8 @@ export const getColorForMatch = (index: number): string => {
     'rgba(236, 72, 153, 0.4)', // pink
     'rgba(249, 115, 22, 0.4)', // orange
     'rgba(6, 182, 212, 0.4)', // cyan
-  ];
-  return colors[index % colors.length];
+  ] as const;
+  return colors[index % colors.length] ?? colors[0];
 };
 
 export const scrollToMatch = (

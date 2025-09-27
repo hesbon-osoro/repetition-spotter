@@ -4,7 +4,6 @@ import {
   RepetitionStats,
   DetectionLevel,
   AnalysisOptions,
-  QuillEditor,
   QuillRange,
 } from '../types';
 import type { QuillWrapperRef } from '@/components/editor/QuillWrapper';
@@ -47,9 +46,10 @@ export const useTextAnalysis = () => {
   // Auto-analyze when content changes (with debounce)
   useEffect(() => {
     const textContent = extractPlainText(content);
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     if (textContent.trim().length > 0) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         const result = analyzeText(textContent, detectionLevel, options);
         setRepetitions(result.repetitions);
         setStats(result.stats);
@@ -94,9 +94,11 @@ export const useTextAnalysis = () => {
           }
         }, 1000); // Increased delay to ensure editor is ready
       }, 500); // Reduced debounce for faster response
-
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [content, detectionLevel, options, quillRef]);
 
   const analyze = useCallback(() => {
@@ -146,9 +148,12 @@ export const useTextAnalysis = () => {
     }
   }, [content, detectionLevel, options, quillRef]);
 
-  const updateOption = useCallback((key: keyof AnalysisOptions, value: any) => {
-    setOptions(prev => ({ ...prev, [key]: value }));
-  }, []);
+  const updateOption = useCallback(
+    <K extends keyof AnalysisOptions>(key: K, value: AnalysisOptions[K]) => {
+      setOptions(prev => ({ ...prev, [key]: value }));
+    },
+    []
+  );
 
   const clearHighlightsHandler = useCallback(() => {
     if (quillRef.current) {
@@ -277,6 +282,6 @@ const getColorForRepetition = (index: number): string => {
     'rgba(236, 72, 153, 0.4)', // pink
     'rgba(249, 115, 22, 0.4)', // orange
     'rgba(6, 182, 212, 0.4)', // cyan
-  ];
-  return colors[index % colors.length];
+  ] as const;
+  return colors[index % colors.length] ?? colors[0];
 };

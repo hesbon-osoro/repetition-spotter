@@ -89,18 +89,21 @@ export async function parseFile(
       // Configure worker to suppress warnings in some bundlers
       try {
         if (typeof window !== 'undefined') {
-          // @ts-ignore - types vary across pdfjs-dist versions
-          const { GlobalWorkerOptions, version } = pdfjsLib as any;
+          const { GlobalWorkerOptions, version } =
+            (pdfjsLib as unknown as {
+              GlobalWorkerOptions?: { workerSrc?: string };
+              version?: string;
+            }) || {};
           if (GlobalWorkerOptions && !GlobalWorkerOptions.workerSrc) {
-            GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
+            GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version ?? '4.0.379'}/pdf.worker.min.js`;
           }
         }
       } catch (e) {
         // Non-fatal, continue without explicit worker config
+        console.warn('PDF worker config failed, falling back to text()', e);
       }
 
       onProgress?.({ phase: 'Parsing PDF', progress: 0 });
-      // @ts-ignore - getDocument shape differs by version
       const loadingTask = (pdfjsLib as any).getDocument({ data: buffer });
       const pdf = await loadingTask.promise;
       let fullText = '';
@@ -108,7 +111,11 @@ export async function parseFile(
         const page = await pdf.getPage(pageNumber);
         const content = await page.getTextContent();
         const strings = content.items
-          .map((item: any) => ('str' in item ? item.str : item?.item?.str))
+          // item comes from pdfjs; its exact type is version-dependent
+          .map((item: unknown) => {
+            const it = item as { str?: string; item?: { str?: string } };
+            return typeof it.str === 'string' ? it.str : it.item?.str;
+          })
           .filter(Boolean);
         fullText += strings.join(' ') + '\n\n';
         onProgress?.({
@@ -169,8 +176,8 @@ export async function parseFile(
   // approach is intentionally conservative but keeps most formatting tags.
   async function getDOMPurify() {
     if (typeof window === 'undefined') return null;
-    const mod: any = await import('dompurify');
-    const dp: any = mod.default || mod;
+    const mod: unknown = await import('dompurify');
+    const dp = (mod as any).default || (mod as any);
     // If default export already has sanitize (browser builds), use it.
     if (dp && typeof dp.sanitize === 'function') {
       return dp.sanitize.bind(dp) as (dirty: string, cfg?: any) => string;
@@ -180,7 +187,7 @@ export async function parseFile(
     if (instance && typeof instance.sanitize === 'function') {
       return instance.sanitize.bind(instance) as (
         dirty: string,
-        cfg?: any
+        cfg?: unknown
       ) => string;
     }
     return null;
@@ -231,7 +238,7 @@ export async function parseFile(
   // Simple RTF to text conversion for common cases (not perfect but works for basic docs)
   function rtfToText(rtf: string): string {
     // Remove RTF groups and control words
-    let text = rtf
+    const text = rtf
       .replace(/\\par[d]?/g, '\n')
       .replace(/\\tab/g, '\t')
       .replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => {

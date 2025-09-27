@@ -29,7 +29,7 @@ export const analyzeText = (
       repetitions = findPhraseRepetitions(text, options);
       break;
     case 'word':
-      repetitions = findWordRepetitions(text, options);
+      repetitions = findWordRepetitions(text);
       break;
   }
 
@@ -89,7 +89,10 @@ const findParagraphRepetitions = (
       const actualContent = isMulti
         ? content.substring(content.indexOf('_', 6) + 1)
         : content;
-      const paragraphCount = isMulti ? parseInt(content.split('_')[1]) : 1;
+      const part = isMulti ? content.split('_')[1] : undefined;
+      const paragraphCount = isMulti
+        ? Number.parseInt(part ?? '1', 10) || 1
+        : 1;
 
       repetitions.push({
         id: `para-${Date.now()}-${Math.random()}`,
@@ -179,10 +182,7 @@ const findPhraseRepetitions = (
   return repetitions.sort((a, b) => b.count - a.count);
 };
 
-const findWordRepetitions = (
-  text: string,
-  options: AnalysisOptions
-): Repetition[] => {
+const findWordRepetitions = (text: string): Repetition[] => {
   const words = text.toLowerCase().match(/\b\w+\b/g) || [];
   const wordCount: Record<string, number> = {};
   const repetitions: Repetition[] = [];
@@ -313,7 +313,7 @@ export const findParagraphsRepetitions = (
 export const applyHighlights = (
   quill: QuillEditor | null,
   matches: MatchInfo[],
-  selectedText: string,
+  _selectedText: string,
   selectionRange: QuillRange
 ) => {
   if (!quill || typeof quill.getLength !== 'function') return;
@@ -358,7 +358,7 @@ export const clearHighlights = (quill: QuillEditor | null) => {
 };
 
 const getColorForMatch = (index: number): string => {
-  const colors = [
+  const colors: string[] = [
     'rgba(59, 130, 246, 0.4)', // blue
     'rgba(16, 185, 129, 0.4)', // green
     'rgba(245, 158, 11, 0.4)', // yellow
@@ -367,7 +367,8 @@ const getColorForMatch = (index: number): string => {
     'rgba(249, 115, 22, 0.4)', // orange
     'rgba(6, 182, 212, 0.4)', // cyan
   ];
-  return colors[index % colors.length];
+  const idx = ((index % colors.length) + colors.length) % colors.length;
+  return colors[idx] || 'rgba(59, 130, 246, 0.4)';
 };
 
 export const scrollToMatch = (

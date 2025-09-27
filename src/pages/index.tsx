@@ -50,7 +50,6 @@ const Home: NextPage = () => {
       const searchText = repetition.text;
       const color = getColorForMatch(repetitions.indexOf(repetition));
 
-      let index = 0;
       let occurrenceCount = 0;
 
       // Use a more robust search that handles case-insensitive matching
