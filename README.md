@@ -206,3 +206,11 @@ We welcome contributions!
 [![preview](./public/prev/prev0.PNG)](https://repetition-spotter.vercel.app/)
 
 [![preview](./public/prev/prev1.PNG)](https://repetition-spotter.vercel.app/)
+
+## Future Updates
+
+Be able to upload documents and extract text content for analysis
+
+Be able to download analysis results (in the original format, or save as option)
+
+Make semantic analysis work as expected from reference html
