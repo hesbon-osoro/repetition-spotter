@@ -36,7 +36,8 @@ const Header = () => {
     };
   }, []);
 
-  const subtitleText = 'Detect and analyze text repetitions with precision.';
+  const subtitleText =
+    'Professional tool for detecting and analyzing text repetitions.';
   const words = subtitleText.split(' ');
 
   return (
