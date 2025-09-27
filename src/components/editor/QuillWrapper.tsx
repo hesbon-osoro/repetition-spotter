@@ -9,8 +9,8 @@ type ReactQuillLikeProps = {
   onChange: (value: string | QuillDelta[]) => void;
   modules?: unknown;
   theme?: string;
-  placeholder?: string;
-  onSelectionChange?: (range: QuillRange | null) => void;
+  placeholder?: string | undefined;
+  onSelectionChange?: ((range: QuillRange | null) => void) | undefined;
 };
 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
