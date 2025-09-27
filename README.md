@@ -214,3 +214,15 @@ Be able to upload documents and extract text content for analysis
 Be able to download analysis results (in the original format, or save as option)
 
 Make semantic analysis work as expected from reference html
+
+Improve the UI/UX of the application
+
+Improve the performance of the application
+
+Improve the accessibility of the application
+
+Improve the security of the application
+
+Improve the scalability of the application
+
+Improve the maintainability of the application
