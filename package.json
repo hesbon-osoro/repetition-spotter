@@ -3,17 +3,26 @@
   "description": "Professional tool for detecting and analyzing text repetitions",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.11.0",
+    "yarn": ">=1.22.19"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "format": "prettier --write .",
+    "lint": "next lint --max-warnings=0",
+    "lint:fix": "next lint --max-warnings=0 --fix",
+    "type-check": "tsc --noEmit",
+    "pre-build": "yarn lint && yarn type-check",
+    "build:safe": "yarn pre-build && yarn build",
     "start": "next start"
   },
   "dependencies": {
     "chart.js": "^4.5.0",
+    "dompurify": "^3.1.6",
     "mammoth": "^1.11.0",
     "marked": "^16.3.0",
-    "dompurify": "^3.1.6",
     "next": "15.5.3",
     "pdfjs-dist": "^5.4.149",
     "quill": "^2.0.3",
@@ -34,6 +43,8 @@
     "autoprefixer": "10",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.1",
     "postcss": "8",
     "prettier": "^3",
     "typescript": "^5"
