@@ -111,11 +111,10 @@ const Home: NextPage = () => {
           content="Detect and analyze text repetitions with our advanced VSCode-style text analysis tool."
         />
         <meta property="og:type" content="website" />
-        <link rel="icon" href="/favicon/favicon.ico" />
       </Head>
 
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Editor Area */}
             <div className="lg:col-span-3">
@@ -125,12 +124,12 @@ const Home: NextPage = () => {
                 options={options}
                 updateOption={updateOption}
               />
-
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6">
                 <Toolbar
                   onAnalyze={analyze}
                   onClearHighlights={clearHighlights}
                   onClearText={clearText}
+                  onUpload={text => setContent(text)}
                   options={options}
                   updateOption={updateOption}
                 />
@@ -140,7 +139,6 @@ const Home: NextPage = () => {
                   quillRef={quillRef}
                 />
               </div>
-
               <StatsCards stats={stats} />
             </div>
 

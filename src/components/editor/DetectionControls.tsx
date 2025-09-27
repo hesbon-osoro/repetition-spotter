@@ -62,7 +62,9 @@ const DetectionControls: React.FC<DetectionControlsProps> = ({
               }
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Semantic Similarity</span>
+            <span className="text-sm text-gray-700">
+              🧠 Semantic Similarity
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
@@ -71,7 +73,7 @@ const DetectionControls: React.FC<DetectionControlsProps> = ({
               onChange={e => updateOption('ignoreCase', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Ignore Case</span>
+            <span className="text-sm text-gray-700">🔤 Ignore Case</span>
           </label>
           <label className="flex items-center space-x-2">
             <input
@@ -82,7 +84,7 @@ const DetectionControls: React.FC<DetectionControlsProps> = ({
               }
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Ignore Punctuation</span>
+            <span className="text-sm text-gray-700">📝 Ignore Punctuation</span>
           </label>
         </div>
       </div>

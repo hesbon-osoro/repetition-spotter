@@ -164,6 +164,47 @@ const Editor: React.FC<EditorProps> = ({
           placeholder="Paste your text here for VSCode-style repetition analysis..."
           onSelectionChange={handleSelectionChange}
         />
+        <style jsx global>{`
+          /* Improve readability for code/JSON */
+          .ql-editor pre {
+            background-color: #0f172a0d; /* slate-900/5 */
+            color: #0f172a; /* slate-900 */
+            padding: 0.75rem; /* p-3 */
+            border-radius: 0.5rem; /* rounded-lg */
+            overflow-x: auto;
+            border: 1px solid #e5e7eb; /* gray-200 */
+          }
+
+          /* Tables (CSV/XLSX) */
+          .ql-editor table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.75rem 0; /* my-3 */
+            font-size: 0.95rem;
+          }
+          .ql-editor th,
+          .ql-editor td {
+            border: 1px solid #e5e7eb; /* gray-200 */
+            padding: 0.5rem 0.625rem; /* px-2.5 py-2 */
+            text-align: left;
+          }
+          .ql-editor thead th {
+            background: #f8fafc; /* slate-50 */
+            font-weight: 600;
+          }
+          .ql-editor tbody tr:nth-child(odd) {
+            background: #f9fafb; /* gray-50 */
+          }
+
+          /* Headings from DOCX/Markdown */
+          .ql-editor h1,
+          .ql-editor h2,
+          .ql-editor h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.25;
+          }
+        `}</style>
       </div>
     </div>
   );
