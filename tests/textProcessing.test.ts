@@ -1,7 +1,9 @@
 import { analyzeText } from '@/utils/textProcessing';
 import type { AnalysisOptions, DetectionLevel } from '@/types';
 
-const options = (overrides: Partial<AnalysisOptions> = {}): AnalysisOptions => ({
+const options = (
+  overrides: Partial<AnalysisOptions> = {}
+): AnalysisOptions => ({
   minLength: 3,
   similarityThreshold: 80,
   ignoreCase: true,
@@ -53,7 +55,9 @@ describe('analyzeText', () => {
     });
 
     it.each(reachable)('handles whitespace-only input at %s', level => {
-      expect(analyzeText('   \n\n   ', level, options()).repetitions).toEqual([]);
+      expect(analyzeText('   \n\n   ', level, options()).repetitions).toEqual(
+        []
+      );
     });
   });
 
@@ -96,9 +100,11 @@ describe('analyzeText', () => {
         'Hello, world! This paragraph is long enough to pass the threshold.';
       const withoutPunctuation =
         'Hello world This paragraph is long enough to pass the threshold';
-      const text = [withPunctuation, 'Filler paragraph in between here.', withoutPunctuation].join(
-        '\n\n'
-      );
+      const text = [
+        withPunctuation,
+        'Filler paragraph in between here.',
+        withoutPunctuation,
+      ].join('\n\n');
 
       const strict = analyzeText(text, 'paragraph', options());
       const lenient = analyzeText(
@@ -134,8 +140,7 @@ describe('analyzeText', () => {
 
   describe('phrase level', () => {
     it('detects a duplicated phrase using the configured minimum length', () => {
-      const text =
-        'alpha beta gamma delta alpha beta gamma delta epsilon zeta';
+      const text = 'alpha beta gamma delta alpha beta gamma delta epsilon zeta';
 
       const { repetitions } = analyzeText(
         text,
@@ -192,7 +197,11 @@ describe('analyzeText', () => {
     });
 
     it('counts words in the source text', () => {
-      const { stats } = analyzeText('one two three four five', 'word', options());
+      const { stats } = analyzeText(
+        'one two three four five',
+        'word',
+        options()
+      );
       expect(stats.wordCount).toBe(5);
     });
 

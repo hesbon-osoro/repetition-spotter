@@ -19,9 +19,6 @@ export const analyzeText = (
     case 'paragraph':
       repetitions = findParagraphRepetitions(text, options);
       break;
-    case 'paragraphs':
-      repetitions = findParagraphsRepetitions(text, options);
-      break;
     case 'sentence':
       repetitions = findSentenceRepetitions(text, options);
       break;
@@ -240,73 +237,6 @@ const calculateStatistics = (
     instanceCount: totalInstances,
     efficiencyScore: Math.round(efficiency),
   };
-};
-
-// Enhanced paragraph detection that properly handles multiple paragraphs
-export const findParagraphsRepetitions = (
-  text: string,
-  options: AnalysisOptions
-): Repetition[] => {
-  // Split by multiple newlines, HTML paragraph tags, or other paragraph indicators
-  const paragraphs = text
-    .split(/\n\s*\n|<\/p>\s*<p[^>]*>|<\/p>\s*<br\s*\/?>\s*<p[^>]*>/i)
-    .map(p => p.replace(/<[^>]*>/g, '').trim()) // Remove HTML tags
-    .filter(p => p.length > 0);
-  const repetitions: Repetition[] = [];
-  const seen = new Map<string, { indices: number[]; text: string }>();
-
-  // Process single paragraphs
-  paragraphs.forEach((paragraph, index) => {
-    const normalized = normalizeText(paragraph, options);
-    if (normalized.length > 50) {
-      if (seen.has(normalized)) {
-        seen.get(normalized)!.indices.push(index);
-      } else {
-        seen.set(normalized, { indices: [index], text: paragraph });
-      }
-    }
-  });
-
-  // Process multi-paragraph sequences (2-4 paragraphs)
-  for (
-    let seqLength = 2;
-    seqLength <= Math.min(4, paragraphs.length);
-    seqLength++
-  ) {
-    for (let i = 0; i <= paragraphs.length - seqLength; i++) {
-      const sequence = paragraphs.slice(i, i + seqLength);
-      const sequenceText = sequence.map(p => p.trim()).join('\n\n');
-      const normalized = normalizeText(sequenceText, options);
-
-      if (normalized.length > 100) {
-        if (seen.has(normalized)) {
-          seen.get(normalized)!.indices.push(i);
-        } else {
-          seen.set(normalized, { indices: [i], text: sequenceText });
-        }
-      }
-    }
-  }
-
-  // Convert to repetition objects
-  seen.forEach((value, key) => {
-    if (value.indices.length > 1) {
-      const paragraphCount = key.split('\n\n').length;
-
-      repetitions.push({
-        id: `para-${Date.now()}-${Math.random()}`,
-        text:
-          value.text.substring(0, 150) + (value.text.length > 150 ? '...' : ''),
-        fullText: value.text,
-        count: value.indices.length,
-        level: 'paragraph',
-        paragraphCount,
-        indices: value.indices,
-      });
-    }
-  });
-
-  return repetitions.sort((a, b) => b.count - a.count);
 };
 
 // Function to apply highlights with different colors for each match

@@ -1,10 +1,5 @@
 // types/index.ts
-export type DetectionLevel =
-  | 'paragraph'
-  | 'paragraphs'
-  | 'sentence'
-  | 'phrase'
-  | 'word';
+export type DetectionLevel = 'paragraph' | 'sentence' | 'phrase' | 'word';
 
 export interface Repetition {
   id: string;
