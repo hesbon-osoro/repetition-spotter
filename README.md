@@ -72,13 +72,21 @@ RepetitionSpotter is a powerful text analysis tool designed for writers, editors
 - **Interactive Statistics**: Real-time metrics on content efficiency
 - **Visual Charts**: Doughnut charts showing content composition
 - **Detailed Breakdown**: Count and categorize all detected repetitions
-- **Export Capabilities**: Save analysis results for future reference
+- **Export Capabilities**: Download the text, or the report as .txt, .json or .csv
+- **Document Stats**: Live characters (with and without spaces), words, sentences, paragraphs, reading and speaking time
+- **Readability**: Flesch reading ease, Flesch–Kincaid grade, lexical diversity and density
+- **Keywords & Long Sentences**: Top keyword density and sentences over 25 words; click one to highlight it in the editor
 
 ### 🛠️ Professional Tools
 
 - **WYSIWYG Editor**: Rich text editing with full formatting support
 - **Search & Filter**: Quickly find specific repetitions in large documents
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Light, Dark or System Theme**: Saved per browser, applied before first paint
+- **Editor Typography**: Sans, serif, mono and the reading-friendly Atkinson Hyperlegible and Lexend, with size and line spacing
+- **Focus Mode**: Just the editor; Esc returns
+- **Autosave**: Drafts are kept in your browser and restored on your next visit
+- **Open & Copy**: Open .txt, .md, .docx, .pdf, .html, .csv or .xlsx files; copy the plain text
 - **Component Architecture**: Modular Next.js structure for maintainability
 
 ## 🚀 Live Demo
@@ -162,8 +170,8 @@ interface AnalysisSettings {
 
 ### Technology Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS, Custom CSS animations
+- **Frontend**: Next.js 15 (pages router), React 19, TypeScript
+- **Styling**: Tailwind CSS v4 (compiled; theme tokens in `src/styles/globals.css`)
 - **Editor**: Quill.js rich text editor
 - **Charts**: Chart.js with React integration
 - **Deployment**: Vercel with automatic CI/CD
@@ -211,8 +219,6 @@ We welcome contributions!
 
 Be able to upload documents and extract text content for analysis
 
-Be able to download analysis results (in the original format, or save as option)
-
 Make semantic analysis work as expected from reference html
 
 Improve the UI/UX of the application
@@ -226,3 +232,7 @@ Improve the security of the application
 Improve the scalability of the application
 
 Improve the maintainability of the application
+
+## 📬 Contact
+
+Hesbon Osoro · [hesbon.dev](https://hesbon.dev) · [osoro@hesbon.dev](mailto:osoro@hesbon.dev)

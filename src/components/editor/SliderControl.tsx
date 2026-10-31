@@ -3,6 +3,7 @@ interface SliderControlProps {
   value: number;
   min: number;
   max: number;
+  step?: number;
   onChange: (value: number) => void;
   suffix?: string;
 }
@@ -12,27 +13,29 @@ const SliderControl: React.FC<SliderControlProps> = ({
   value,
   min,
   max,
+  step = 1,
   onChange,
   suffix = '',
 }) => {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium text-ink-2">
         {label}:{' '}
-        <span className="font-bold text-blue-600">
+        <span className="font-semibold text-accent">
           {value}
           {suffix}
         </span>
-      </label>
+      </span>
       <input
         type="range"
         value={value}
         min={min}
         max={max}
+        step={step}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+        className="w-full cursor-pointer"
       />
-    </div>
+    </label>
   );
 };
 

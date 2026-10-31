@@ -1,24 +1,22 @@
 // src/pages/_document.tsx
 import { Html, Head, Main, NextScript } from 'next/document';
-import Script from 'next/script';
+import { themeScript } from '@/hooks/usePreferences';
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" suppressHydrationWarning>
       <Head>
-        {/* Quill editor theme */}
-        <link
-          href="https://cdn.quilljs.com/1.3.7/quill.snow.css"
-          rel="stylesheet"
+        {/* Sets the theme class before first paint, so dark mode never flashes */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: light)"
+          content="#f5f7fb"
         />
-        {/* Tailwind CDN fallback (only if your PostCSS setup isn’t working) */}
-        <Script src="https://cdn.tailwindcss.com" />
-        {/* Preconnect for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: dark)"
+          content="#0b0f17"
         />
 
         {/* Favicon */}
@@ -46,14 +44,8 @@ export default function Document() {
           sizes="512x512"
           href="/favicon/web-app-manifest-512x512.png"
         />
-
-        {/* Preload critical resources */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
       </Head>
-      <body className="antialiased">
+      <body>
         <Main />
         <NextScript />
       </body>

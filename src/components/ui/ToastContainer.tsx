@@ -10,18 +10,18 @@ const ToastContainer: React.FC = () => {
       {toasts.map(t => (
         <div
           key={t.id}
-          className={`shadow-lg border rounded-md px-4 py-3 text-sm backdrop-blur bg-white/90 flex items-start gap-3 ${
+          className={`shadow-lg border rounded-lg px-4 py-3 text-sm backdrop-blur bg-surface/95 flex items-start gap-3 ${
             t.type === 'success'
-              ? 'border-green-300 text-green-800'
+              ? 'border-green-300 text-green-800 dark:border-green-700 dark:text-green-300'
               : t.type === 'error'
-                ? 'border-red-300 text-red-800'
-                : 'border-blue-300 text-blue-800'
+                ? 'border-red-300 text-red-800 dark:border-red-700 dark:text-red-300'
+                : 'border-blue-300 text-blue-800 dark:border-blue-700 dark:text-blue-300'
           }`}
         >
           <div className="flex-1 whitespace-pre-line">{t.message}</div>
           <button
             onClick={() => removeToast(t.id)}
-            className="ml-2 text-gray-500 hover:text-gray-800"
+            className="ml-2 text-muted hover:text-ink"
             aria-label="Dismiss"
             title="Dismiss"
           >

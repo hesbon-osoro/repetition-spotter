@@ -12,7 +12,7 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       value: stats.wordCount,
       icon: (
         <svg
-          className="w-6 h-6 text-blue-600"
+          className="w-6 h-6 text-blue-600 dark:text-blue-300"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -25,14 +25,14 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
           ></path>
         </svg>
       ),
-      bgColor: 'bg-blue-100',
+      bgColor: 'bg-blue-100 dark:bg-blue-500/15',
     },
     {
       title: 'Repetitions',
       value: stats.repetitionCount,
       icon: (
         <svg
-          className="w-6 h-6 text-yellow-600"
+          className="w-6 h-6 text-amber-600 dark:text-amber-300"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -45,14 +45,14 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
           ></path>
         </svg>
       ),
-      bgColor: 'bg-yellow-100',
+      bgColor: 'bg-amber-100 dark:bg-amber-500/15',
     },
     {
       title: 'Instances',
       value: stats.instanceCount,
       icon: (
         <svg
-          className="w-6 h-6 text-red-600"
+          className="w-6 h-6 text-red-600 dark:text-red-300"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -65,14 +65,14 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
           ></path>
         </svg>
       ),
-      bgColor: 'bg-red-100',
+      bgColor: 'bg-red-100 dark:bg-red-500/15',
     },
     {
       title: 'Efficiency',
       value: `${stats.efficiencyScore}%`,
       icon: (
         <svg
-          className="w-6 h-6 text-green-600"
+          className="w-6 h-6 text-emerald-600 dark:text-emerald-300"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -85,24 +85,30 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
           ></path>
         </svg>
       ),
-      bgColor: 'bg-green-100',
+      bgColor: 'bg-emerald-100 dark:bg-emerald-500/15',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+    <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
       {cards.map((card, index) => (
         <div
           key={index}
-          className="stats-card rounded-xl shadow-lg border border-gray-200 p-6"
+          className="rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5"
         >
-          <div className="flex items-center">
-            <div className={`p-3 rounded-full ${card.bgColor}`}>
+          <div className="flex items-center gap-3">
+            <div
+              className={`shrink-0 rounded-full p-2.5 sm:p-3 ${card.bgColor}`}
+            >
               {card.icon}
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{card.title}</p>
-              <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium text-ink-2 sm:text-sm">
+                {card.title}
+              </p>
+              <p className="text-xl font-bold tabular-nums text-ink sm:text-2xl">
+                {card.value}
+              </p>
             </div>
           </div>
         </div>
