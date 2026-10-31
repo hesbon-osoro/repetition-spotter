@@ -1,6 +1,7 @@
 // src/components/editor/QuillWrapper.tsx
 import { useRef, forwardRef, useImperativeHandle } from 'react';
 import dynamic from 'next/dynamic';
+import EditorLoader from '@/components/ui/EditorLoader';
 import { QuillEditor, QuillRange } from '../../types';
 
 // Use a loose typing for ReactQuill since its ref is the component which exposes getEditor()
@@ -32,7 +33,7 @@ const ReactQuill = dynamic(
     );
     return Forwarded;
   },
-  { ssr: false }
+  { ssr: false, loading: () => <EditorLoader /> }
 );
 
 interface QuillDelta {

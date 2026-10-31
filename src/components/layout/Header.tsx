@@ -1,5 +1,7 @@
 // components/layout/Header.tsx
 import Logo from '../ui/Logo';
+import ThemeToggle from '../ui/ThemeToggle';
+import { GithubIcon } from '../ui/icons';
 import { useEffect, useRef } from 'react';
 
 const Header = () => {
@@ -41,22 +43,22 @@ const Header = () => {
   const words = subtitleText.split(' ');
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-100/80 shadow-md transition-all duration-300">
+    <header className="sticky top-0 z-50 border-b border-line bg-surface/85 backdrop-blur-lg transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20 md:h-20">
+        <div className="flex h-16 items-center justify-between gap-3 md:h-20">
           {/* Left side - Logo + Title */}
-          <div className="flex items-center space-x-4 md:space-x-5">
+          <div className="flex min-w-0 items-center gap-3 md:gap-5">
             <Logo
               size="lg"
-              className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg"
+              className="shrink-0 transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg"
             />
-            <div className="flex flex-col">
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
+            <div className="flex min-w-0 flex-col">
+              <h1 className="truncate bg-linear-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-xl font-bold tracking-tight text-transparent animate-gradient md:text-3xl dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400">
                 RepetitionSpotter
               </h1>
               <p
                 ref={subtitleRef}
-                className="text-sm text-gray-600/90 font-medium mt-1 hidden sm:block subtitle-container"
+                className="mt-1 hidden text-sm font-medium lg:block subtitle-container"
               >
                 {words.map((word: string, index: number) => (
                   <span
@@ -70,12 +72,18 @@ const Header = () => {
               </p>
             </div>
           </div>
-          {/* Right side - Stack Info */}
-          <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-full py-2 px-4 border border-gray-200/50 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md">
-            <span className="text-sm font-medium text-gray-700/90 flex items-center">
-              <span className="hidden sm:inline">Next.js + </span>TypeScript
-              <span className="w-2.5 h-2.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full animate-pulse ml-2"></span>
-            </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
+            <a
+              href="https://github.com/hesbon-osoro/repetition-spotter"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Source on GitHub"
+              title="Source on GitHub"
+              className="hidden h-10 w-10 place-items-center rounded-full border border-line text-ink-2 transition-colors hover:text-ink sm:grid"
+            >
+              <GithubIcon className="h-[18px] w-[18px]" />
+            </a>
           </div>
         </div>
       </div>
@@ -110,10 +118,10 @@ const Header = () => {
         .subtitle-word {
           display: inline-block;
           transition: all 0.3s ease;
-          color: #4b5563;
+          color: var(--ink-2);
         }
         .subtitle-word.underline-active {
-          color: #4f46e5;
+          color: var(--accent);
         }
         .subtitle-word.underline-active::after {
           content: '';
@@ -127,7 +135,7 @@ const Header = () => {
           border-radius: 1px;
         }
         .subtitle-word:hover {
-          color: #4f46e5;
+          color: var(--accent);
           transform: translateY(-1px);
         }
       `}</style>

@@ -14,7 +14,9 @@ export type Layer =
   | 'rs-current'
   | 'rs-selection'
   | 'rs-match'
-  | 'rs-semantic';
+  | 'rs-semantic'
+  | 'rs-keyword'
+  | 'rs-long';
 
 const LAYERS: Layer[] = [
   'rs-paragraph',
@@ -25,9 +27,12 @@ const LAYERS: Layer[] = [
   'rs-selection',
   'rs-match',
   'rs-semantic',
+  'rs-keyword',
+  'rs-long',
 ];
 
 // Injected at runtime: the CSS build pipeline drops ::highlight() rules.
+// Dark mode keeps the same hues, lighter text and stronger backgrounds.
 const STYLES = `
 ::highlight(rs-paragraph) { background-color: rgba(239, 68, 68, 0.2); }
 ::highlight(rs-sentence) { background-color: rgba(245, 158, 11, 0.25); }
@@ -37,6 +42,18 @@ const STYLES = `
 ::highlight(rs-selection) { background-color: #add8e6; }
 ::highlight(rs-match) { background-color: #ffeb3b; }
 ::highlight(rs-semantic) { background-color: rgba(139, 92, 246, 0.25); }
+::highlight(rs-keyword) { background-color: rgba(14, 165, 233, 0.25); text-decoration: underline 2px rgb(14, 165, 233); }
+::highlight(rs-long) { background-color: rgba(249, 115, 22, 0.2); text-decoration: underline wavy 1px rgb(249, 115, 22); }
+.dark ::highlight(rs-paragraph) { background-color: rgba(248, 113, 113, 0.28); }
+.dark ::highlight(rs-sentence) { background-color: rgba(251, 191, 36, 0.28); }
+.dark ::highlight(rs-phrase) { background-color: rgba(52, 211, 153, 0.28); }
+.dark ::highlight(rs-word) { background-color: rgba(96, 165, 250, 0.3); }
+.dark ::highlight(rs-current) { background-color: rgba(248, 113, 113, 0.45); text-decoration: underline 2px rgb(248, 113, 113); }
+.dark ::highlight(rs-selection) { background-color: rgba(125, 211, 252, 0.4); }
+.dark ::highlight(rs-match) { background-color: rgba(250, 204, 21, 0.45); color: #fff; }
+.dark ::highlight(rs-semantic) { background-color: rgba(167, 139, 250, 0.35); }
+.dark ::highlight(rs-keyword) { background-color: rgba(56, 189, 248, 0.3); text-decoration: underline 2px rgb(56, 189, 248); }
+.dark ::highlight(rs-long) { background-color: rgba(251, 146, 60, 0.25); text-decoration: underline wavy 1px rgb(251, 146, 60); }
 `;
 
 function ensureStyles() {
@@ -109,10 +126,10 @@ export function reveal(quill: QuillEditor | null, span: Occurrence) {
 
 export const getColorForLevel = (level: string): string => {
   const colors: Record<string, string> = {
-    paragraph: 'rgba(239, 68, 68, 0.2)',
-    sentence: 'rgba(245, 158, 11, 0.2)',
-    phrase: 'rgba(16, 185, 129, 0.2)',
-    word: 'rgba(59, 130, 246, 0.2)',
+    paragraph: 'rgba(239, 68, 68, 0.55)',
+    sentence: 'rgba(245, 158, 11, 0.55)',
+    phrase: 'rgba(16, 185, 129, 0.55)',
+    word: 'rgba(59, 130, 246, 0.55)',
   };
   return colors[level] || 'rgba(156, 163, 175, 0.2)';
 };

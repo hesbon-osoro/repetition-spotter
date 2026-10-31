@@ -1,4 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+  useDeferredValue,
+} from 'react';
 import {
   Repetition,
   RepetitionStats,
@@ -14,6 +21,8 @@ import {
   type SelectionAnalysis,
 } from '../utils/similarityAlgorithms';
 import { clear, paint, reveal, type Layer } from '../utils/highlightUtils';
+import { computeTextStats } from '../utils/textStats';
+import { sampleText } from '../lib/sampleText';
 
 export interface QuillDelta {
   insert: string;
@@ -37,6 +46,31 @@ const initialOptions: AnalysisOptions = {
 
 const levelLayer = (level: DetectionLevel): Layer => `rs-${level}`;
 
+const FOCUS_LAYERS: Layer[] = [
+  'rs-paragraph',
+  'rs-sentence',
+  'rs-phrase',
+  'rs-word',
+  'rs-keyword',
+  'rs-long',
+];
+
+export const DRAFT_KEY = 'rs:draft';
+
+interface Draft {
+  content: string | QuillDelta[];
+  savedAt: number;
+}
+
+function readDraft(): Draft | null {
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? 'null');
+    return draft?.content ? draft : null;
+  } catch {
+    return null;
+  }
+}
+
 export const useTextAnalysis = () => {
   const [content, setContent] = useState<string | QuillDelta[]>('');
   const [repetitions, setRepetitions] = useState<Repetition[]>([]);
@@ -50,6 +84,43 @@ export const useTextAnalysis = () => {
     null
   );
   const quillRef = useRef<QuillWrapperRef>(null);
+  /** When the draft on screen was restored from the last visit. */
+  const [restoredAt, setRestoredAt] = useState<number | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [ready, setReady] = useState(false);
+
+  // Open the last draft, or the sample text on a first visit.
+  useEffect(() => {
+    const draft = readDraft();
+    if (draft) {
+      setContent(draft.content);
+      setRestoredAt(draft.savedAt);
+    } else setContent(sampleText);
+    setReady(true);
+  }, []);
+
+  // Autosave shortly after typing stops; an empty editor clears the draft.
+  useEffect(() => {
+    if (!ready) return;
+    const timer = setTimeout(() => {
+      try {
+        if (plainTextOf(content).trim()) {
+          const now = Date.now();
+          localStorage.setItem(
+            DRAFT_KEY,
+            JSON.stringify({ content, savedAt: now } satisfies Draft)
+          );
+          setSavedAt(now);
+        } else {
+          localStorage.removeItem(DRAFT_KEY);
+          setSavedAt(null);
+        }
+      } catch {
+        // storage full or blocked: the draft just isn't kept
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [content, ready]);
 
   const editor = () => quillRef.current?.getEditor() ?? null;
 
@@ -57,6 +128,18 @@ export const useTextAnalysis = () => {
   const currentText = useCallback(
     () => editor()?.getText() ?? plainTextOf(content),
     [content]
+  );
+
+  // Live document statistics, a beat behind typing.
+  const [text, setText] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setText(currentText()), 120);
+    return () => clearTimeout(timer);
+  }, [currentText]);
+  const deferredText = useDeferredValue(text);
+  const textStats = useMemo(
+    () => computeTextStats(deferredText),
+    [deferredText]
   );
 
   // Analysis runs in a worker when the browser allows it; only the newest
@@ -116,24 +199,36 @@ export const useTextAnalysis = () => {
 
   useEffect(() => () => clear(), []);
 
-  /** Highlight every occurrence; each further click moves to the next one. */
-  const highlightRepetition = useCallback(
-    (repetition: Repetition) => {
+  /**
+   * Highlight a set of spans; clicking the same set again moves to its next
+   * span. `at` jumps straight to one span.
+   */
+  const showSpans = useCallback(
+    (id: string, layer: Layer, spans: Occurrence[], at?: number) => {
       const quill = editor();
-      if (!quill) return;
-      const at =
-        focused?.id === repetition.id
-          ? (focused.at + 1) % repetition.occurrences.length
-          : 0;
-      const current = repetition.occurrences[at];
+      if (!quill || !spans.length) return;
+      const index =
+        at ?? (focused?.id === id ? (focused.at + 1) % spans.length : 0);
+      const current = spans[index];
       if (!current) return;
-      clear('rs-paragraph', 'rs-sentence', 'rs-phrase', 'rs-word');
-      paint(quill, levelLayer(repetition.level), repetition.occurrences);
+      clear(...FOCUS_LAYERS);
+      paint(quill, layer, spans);
       paint(quill, 'rs-current', [current]);
       reveal(quill, current);
-      setFocused({ id: repetition.id, at });
+      setFocused({ id, at: index });
     },
     [focused]
+  );
+
+  /** Highlight every occurrence; each further click moves to the next one. */
+  const highlightRepetition = useCallback(
+    (repetition: Repetition) =>
+      showSpans(
+        repetition.id,
+        levelLayer(repetition.level),
+        repetition.occurrences
+      ),
+    [showSpans]
   );
 
   const handleSelection = useCallback(
@@ -192,6 +287,7 @@ export const useTextAnalysis = () => {
 
   const clearText = useCallback(() => {
     setContent('');
+    setRestoredAt(null);
     setRepetitions([]);
     setStats(initialStats);
     clearHighlights();
@@ -203,9 +299,22 @@ export const useTextAnalysis = () => {
     reveal(editor(), span);
   }, []);
 
+  const loadSample = useCallback(() => {
+    setContent(sampleText);
+    setRestoredAt(null);
+  }, []);
+
   return {
     content,
     setContent,
+    ready,
+    restoredAt,
+    savedAt,
+    loadSample,
+    currentText,
+    textStats,
+    statsText: deferredText,
+    showSpans,
     repetitions,
     stats,
     detectionLevel,

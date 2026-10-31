@@ -15,16 +15,16 @@ const Card: React.FC<CardProps> = ({
 }) => {
   const paddingClasses = {
     sm: 'p-4',
-    md: 'p-6',
+    md: 'p-5',
     lg: 'p-8',
   };
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg border border-gray-200 ${paddingClasses[padding]} ${className}`}
+      className={`rounded-2xl border border-line bg-surface shadow-sm ${paddingClasses[padding]} ${className}`}
     >
       {title && (
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+        <h3 className="mb-4 text-base font-semibold text-ink">{title}</h3>
       )}
       {children}
     </div>

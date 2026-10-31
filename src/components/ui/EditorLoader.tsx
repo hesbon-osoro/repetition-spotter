@@ -32,31 +32,31 @@ const EditorLoader: React.FC<EditorLoaderProps> = ({
   }, []);
 
   return (
-    <div className="h-96 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center p-8">
+    <div className="flex h-96 items-center justify-center bg-linear-to-br from-blue-50 to-purple-50 p-8 dark:from-blue-500/10 dark:to-purple-500/10">
       <div className="text-center">
         {/* Animated circles */}
         <div className="flex justify-center space-x-2 mb-6">
           {[0, 1, 2].map(i => (
             <div
               key={i}
-              className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"
+              className="w-3 h-3 bg-accent rounded-full animate-bounce"
               style={{ animationDelay: `${i * 0.1}s` }}
             />
           ))}
         </div>
 
         {/* Typing text */}
-        <div className="font-mono text-gray-700 text-lg mb-4">
+        <div className="font-mono text-ink-2 text-lg mb-4">
           {displayText}
           <span
-            className={`inline-block w-1 h-6 bg-blue-600 ml-1 align-middle ${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+            className={`inline-block w-1 h-6 bg-accent ml-1 align-middle ${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}
           />
         </div>
 
         {/* Subtle progress indicator */}
-        <div className="w-48 h-1 bg-gray-200 rounded-full mx-auto overflow-hidden">
+        <div className="w-48 h-1 bg-line rounded-full mx-auto overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"
+            className="h-full bg-linear-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"
             style={{
               width: `${(currentIndex / message.length) * 100}%`,
               transition: 'width 0.3s ease',
@@ -65,7 +65,7 @@ const EditorLoader: React.FC<EditorLoaderProps> = ({
         </div>
 
         {/* Loading tips */}
-        <div className="mt-6 text-sm text-gray-500 space-y-1">
+        <div className="mt-6 text-sm text-muted space-y-1">
           <p className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
             ✨ Analyzing text patterns...
           </p>

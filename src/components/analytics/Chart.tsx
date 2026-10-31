@@ -2,6 +2,7 @@ import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { RepetitionStats } from '@/types';
 import Card from '../ui/Card';
+import { resolveTheme, usePreferences } from '@/hooks/usePreferences';
 
 // Type for Chart.js tooltip context
 interface TooltipContext {
@@ -16,11 +17,13 @@ interface ChartProps {
 }
 
 const Chart: React.FC<ChartProps> = ({ stats }) => {
+  const { prefs } = usePreferences();
+  const dark = resolveTheme(prefs.theme) === 'dark';
   const data = {
     labels: ['Unique Content', 'Repetitions'],
     datasets: [
       {
-        data: [100 - stats.efficiencyScore, stats.efficiencyScore],
+        data: [stats.efficiencyScore, 100 - stats.efficiencyScore],
         backgroundColor: ['#10b981', '#f59e0b'],
         borderWidth: 0,
         hoverOffset: 4,
@@ -37,6 +40,7 @@ const Chart: React.FC<ChartProps> = ({ stats }) => {
         labels: {
           padding: 20,
           usePointStyle: true,
+          color: dark ? '#a3adc2' : '#475569',
         },
       },
       tooltip: {
@@ -55,7 +59,7 @@ const Chart: React.FC<ChartProps> = ({ stats }) => {
   return (
     <Card title="Analysis Chart" className="mt-6">
       <div className="h-64">
-        <Doughnut data={data} options={options} />
+        <Doughnut key={dark ? 'dark' : 'light'} data={data} options={options} />
       </div>
     </Card>
   );

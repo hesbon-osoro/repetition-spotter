@@ -30,9 +30,9 @@ const RepetitionList: React.FC<RepetitionListProps> = ({
   if (repetitions.length === 0) {
     return (
       <Card title="Detected Repetitions">
-        <div className="text-center text-gray-500 py-8">
+        <div className="py-8 text-center text-ink-2">
           <svg
-            className="w-12 h-12 mx-auto mb-4 text-gray-300"
+            className="mx-auto mb-4 h-12 w-12 text-muted"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -45,7 +45,7 @@ const RepetitionList: React.FC<RepetitionListProps> = ({
             />
           </svg>
           <p className="text-sm">No repetitions found!</p>
-          <p className="text-xs text-gray-400 mt-1">Your text looks good</p>
+          <p className="mt-1 text-xs text-muted">Your text looks good</p>
         </div>
       </Card>
     );
@@ -60,38 +60,38 @@ const RepetitionList: React.FC<RepetitionListProps> = ({
           value={query}
           onChange={e => setQuery(e.target.value)}
           aria-label="Search repetitions"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none"
         />
       </div>
 
-      <div className="space-y-2 max-h-96 overflow-y-auto repetition-list">
+      <div className="thin-scroll max-h-96 space-y-2 overflow-y-auto pr-1">
         {shown.map(repetition => (
           <button
             type="button"
             key={repetition.id}
-            className={`repetition-item block w-full text-left cursor-pointer p-3 rounded-lg border transition-all duration-200 group ${
+            className={`group block w-full rounded-lg border p-3 text-left transition-all duration-200 hover:translate-x-0.5 ${
               focused?.id === repetition.id
-                ? 'border-blue-400 bg-blue-50'
-                : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                ? 'border-accent bg-accent-soft'
+                : 'border-line hover:border-accent/60 hover:bg-accent-soft'
             }`}
             onClick={() => handleRepetitionClick(repetition)}
             title="Click to highlight; click again for the next occurrence"
           >
             <div className="flex items-center justify-between mb-2">
               <span
-                className="w-4 h-4 rounded"
+                className="h-4 w-4 rounded-sm"
                 style={{ backgroundColor: getColorForLevel(repetition.level) }}
               />
-              <span className="text-xs font-medium text-gray-500">
+              <span className="text-xs font-medium tabular-nums text-ink-2">
                 {focused?.id === repetition.id
                   ? `${focused.at + 1} of ${repetition.count}`
                   : `${repetition.count} times`}
               </span>
             </div>
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="truncate text-sm font-medium text-ink">
               &quot;{repetition.text}&quot;
             </p>
-            <p className="text-xs text-gray-500 mt-1 capitalize">
+            <p className="mt-1 text-xs capitalize text-muted">
               {repetition.level} level
               {repetition.paragraphCount &&
                 repetition.paragraphCount > 1 &&
@@ -100,7 +100,7 @@ const RepetitionList: React.FC<RepetitionListProps> = ({
           </button>
         ))}
         {shown.length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-4">
+          <p className="py-4 text-center text-sm text-ink-2">
             No repetitions match “{query}”.
           </p>
         )}
