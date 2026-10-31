@@ -4,13 +4,18 @@ import {
   RepetitionStats,
   DetectionLevel,
   AnalysisOptions,
+  Occurrence,
   QuillRange,
 } from '../types';
 import type { QuillWrapperRef } from '@/components/editor/QuillWrapper';
-import { analyzeText, clearHighlights } from '../utils/textProcessing';
-import { useSelectionAnalysis } from './useSelectionAnalysis';
+import { analyzeText } from '../utils/textProcessing';
+import {
+  analyzeSelection,
+  type SelectionAnalysis,
+} from '../utils/similarityAlgorithms';
+import { clear, paint, reveal, type Layer } from '../utils/highlightUtils';
 
-interface QuillDelta {
+export interface QuillDelta {
   insert: string;
   attributes?: Record<string, unknown>;
 }
@@ -30,6 +35,8 @@ const initialOptions: AnalysisOptions = {
   semanticSimilarity: false,
 };
 
+const levelLayer = (level: DetectionLevel): Layer => `rs-${level}`;
+
 export const useTextAnalysis = () => {
   const [content, setContent] = useState<string | QuillDelta[]>('');
   const [repetitions, setRepetitions] = useState<Repetition[]>([]);
@@ -37,116 +44,138 @@ export const useTextAnalysis = () => {
   const [detectionLevel, setDetectionLevel] =
     useState<DetectionLevel>('paragraph');
   const [options, setOptions] = useState<AnalysisOptions>(initialOptions);
-  // Ref to the QuillWrapper, which exposes getEditor() returning the Quill instance
+  const [selectionAnalysis, setSelectionAnalysis] =
+    useState<SelectionAnalysis | null>(null);
+  const [focused, setFocused] = useState<{ id: string; at: number } | null>(
+    null
+  );
   const quillRef = useRef<QuillWrapperRef>(null);
 
-  const { analyzeSelection, clearSelectionAnalysis, selectionAnalysis } =
-    useSelectionAnalysis();
+  const editor = () => quillRef.current?.getEditor() ?? null;
 
-  // Auto-analyze when content changes (with debounce)
+  /** The text exactly as the editor holds it, so offsets match. */
+  const currentText = useCallback(
+    () => editor()?.getText() ?? plainTextOf(content),
+    [content]
+  );
+
+  // Analysis runs in a worker when the browser allows it; only the newest
+  // request's answer is used.
+  const worker = useRef<Worker | null>(null);
+  const latest = useRef(0);
   useEffect(() => {
-    const textContent = extractPlainText(content);
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    if (textContent.trim().length > 0) {
-      timer = setTimeout(() => {
-        const result = analyzeText(textContent, detectionLevel, options);
-        setRepetitions(result.repetitions);
-        setStats(result.stats);
-
-        // Apply highlights to the editor after analysis with a small delay
-        // to ensure the editor is fully loaded
-        setTimeout(() => {
-          if (quillRef.current && result.repetitions.length > 0) {
-            const editor = quillRef.current.getEditor();
-            if (editor && typeof editor.getText === 'function') {
-              try {
-                // Clear existing highlights first
-                clearHighlights(editor);
-
-                // Apply highlights for each repetition
-                result.repetitions.forEach((repetition, index) => {
-                  if (repetition.text) {
-                    const color = getColorForRepetition(index);
-                    const fullText = editor.getText();
-                    const searchText = repetition.text;
-
-                    // Find and highlight all occurrences
-                    let textIndex = 0;
-                    while (
-                      (textIndex = fullText.indexOf(searchText, textIndex)) !==
-                      -1
-                    ) {
-                      editor.formatText(
-                        textIndex,
-                        searchText.length,
-                        'background',
-                        color
-                      );
-                      textIndex += searchText.length;
-                    }
-                  }
-                });
-              } catch (error) {
-                console.warn('Error applying auto-analysis highlights:', error);
-              }
-            }
-          }
-        }, 1000); // Increased delay to ensure editor is ready
-      }, 500); // Reduced debounce for faster response
+    try {
+      worker.current = new Worker(
+        new URL('../workers/analyze.worker.ts', import.meta.url)
+      );
+    } catch {
+      worker.current = null;
     }
+    return () => worker.current?.terminate();
+  }, []);
 
-    return () => {
-      if (timer) clearTimeout(timer);
+  const run = useCallback(() => {
+    const text = currentText();
+    clear();
+    setFocused(null);
+    const id = ++latest.current;
+    if (!text.trim()) {
+      setRepetitions([]);
+      setStats(initialStats);
+      return;
+    }
+    const apply = (result: ReturnType<typeof analyzeText>) => {
+      if (id !== latest.current) return;
+      setRepetitions(result.repetitions);
+      setStats(result.stats);
     };
-  }, [content, detectionLevel, options, quillRef]);
-
-  const analyze = useCallback(() => {
-    // Convert content to string for analysis
-    const textContent = extractPlainText(content);
-
-    if (!textContent.trim()) return;
-
-    const result = analyzeText(textContent, detectionLevel, options);
-    setRepetitions(result.repetitions);
-    setStats(result.stats);
-
-    // Apply highlights to the editor
-    if (quillRef.current && result.repetitions.length > 0) {
-      const editor = quillRef.current.getEditor();
-      if (editor && typeof editor.getText === 'function') {
-        try {
-          // Clear existing highlights first
-          clearHighlights(editor);
-
-          // Apply highlights for each repetition
-          result.repetitions.forEach((repetition, index) => {
-            if (repetition.text) {
-              const color = getColorForRepetition(index);
-              const fullText = editor.getText();
-              const searchText = repetition.text;
-
-              // Find and highlight all occurrences
-              let textIndex = 0;
-              while (
-                (textIndex = fullText.indexOf(searchText, textIndex)) !== -1
-              ) {
-                editor.formatText(
-                  textIndex,
-                  searchText.length,
-                  'background',
-                  color
-                );
-                textIndex += searchText.length;
-              }
-            }
-          });
-        } catch (error) {
-          console.warn('Error applying manual analysis highlights:', error);
-        }
-      }
+    const w = worker.current;
+    if (!w) {
+      apply(analyzeText(text, detectionLevel, options));
+      return;
     }
-  }, [content, detectionLevel, options, quillRef]);
+    w.onmessage = (
+      e: MessageEvent<{ id: number } & ReturnType<typeof analyzeText>>
+    ) => {
+      if (e.data.id === id) apply(e.data);
+    };
+    w.onerror = () => apply(analyzeText(text, detectionLevel, options));
+    w.postMessage({ id, text, level: detectionLevel, options });
+  }, [currentText, detectionLevel, options]);
+
+  // Re-analyse shortly after edits, a level change or an option change.
+  useEffect(() => {
+    const timer = setTimeout(run, 400);
+    return () => clearTimeout(timer);
+  }, [run]);
+
+  // Offsets go stale as soon as the text changes, so drop highlights on edit.
+  useEffect(() => {
+    clear();
+  }, [content]);
+
+  useEffect(() => () => clear(), []);
+
+  /** Highlight every occurrence; each further click moves to the next one. */
+  const highlightRepetition = useCallback(
+    (repetition: Repetition) => {
+      const quill = editor();
+      if (!quill) return;
+      const at =
+        focused?.id === repetition.id
+          ? (focused.at + 1) % repetition.occurrences.length
+          : 0;
+      const current = repetition.occurrences[at];
+      if (!current) return;
+      clear('rs-paragraph', 'rs-sentence', 'rs-phrase', 'rs-word');
+      paint(quill, levelLayer(repetition.level), repetition.occurrences);
+      paint(quill, 'rs-current', [current]);
+      reveal(quill, current);
+      setFocused({ id: repetition.id, at });
+    },
+    [focused]
+  );
+
+  const handleSelection = useCallback(
+    (range: QuillRange | null) => {
+      const quill = editor();
+      if (!quill) return;
+      if (!range || range.length === 0) {
+        clear('rs-selection', 'rs-match', 'rs-semantic');
+        setSelectionAnalysis(null);
+        return;
+      }
+      const selectedText = quill.getText(range.index, range.length).trim();
+      if (!selectedText) return;
+      const analysis = analyzeSelection(
+        selectedText,
+        range,
+        quill.getText(),
+        options
+      );
+      paint(quill, 'rs-selection', [
+        { start: range.index, end: range.index + range.length },
+      ]);
+      paint(
+        quill,
+        'rs-match',
+        analysis.exactMatches.map(m => ({
+          start: m.index,
+          end: m.index + m.text.length,
+        }))
+      );
+      paint(
+        quill,
+        'rs-semantic',
+        analysis.semanticMatches.map(m => ({
+          start: m.index,
+          end: m.index + m.text.length,
+        }))
+      );
+      setSelectionAnalysis(analysis);
+    },
+    [options]
+  );
 
   const updateOption = useCallback(
     <K extends keyof AnalysisOptions>(key: K, value: AnalysisOptions[K]) => {
@@ -155,53 +184,23 @@ export const useTextAnalysis = () => {
     []
   );
 
-  const clearHighlightsHandler = useCallback(() => {
-    if (quillRef.current) {
-      const editor = quillRef.current.getEditor();
-      clearHighlights(editor);
-    }
-    clearSelectionAnalysis();
-  }, [clearSelectionAnalysis]);
+  const clearHighlights = useCallback(() => {
+    clear();
+    setFocused(null);
+    setSelectionAnalysis(null);
+  }, []);
 
   const clearText = useCallback(() => {
     setContent('');
     setRepetitions([]);
     setStats(initialStats);
-    clearHighlightsHandler();
-  }, [clearHighlightsHandler]);
-
-  const handleSelectionAnalysis = useCallback(
-    (selectedText: string, range: QuillRange) => {
-      if (quillRef.current) {
-        // Convert content to string for analysis
-        const textContent = extractPlainText(content);
-        analyzeSelection(selectedText, range, textContent, options);
-      }
-    },
-    [analyzeSelection, content, options]
-  );
+    clearHighlights();
+  }, [clearHighlights]);
 
   const scrollToMatch = useCallback((index: number, length: number) => {
-    if (!quillRef.current) return;
-    const editor = quillRef.current.getEditor();
-    if (!editor) return;
-
-    // Move caret and focus editor
-    try {
-      editor.setSelection(index, length, 'user');
-      if (typeof editor.focus === 'function') editor.focus();
-
-      const bounds = editor.getBounds(index, length);
-      const container = editor.container as HTMLElement | undefined;
-      if (bounds && container) {
-        container.scrollTo({
-          top: bounds.top + container.scrollTop - 50,
-          behavior: 'smooth',
-        });
-      }
-    } catch (e) {
-      console.warn('scrollToMatch error:', e);
-    }
+    const span: Occurrence = { start: index, end: index + length };
+    paint(editor(), 'rs-current', [span]);
+    reveal(editor(), span);
   }, []);
 
   return {
@@ -213,75 +212,40 @@ export const useTextAnalysis = () => {
     setDetectionLevel,
     options,
     updateOption,
-    analyze,
-    clearHighlights: clearHighlightsHandler,
+    analyze: run,
+    highlightRepetition,
+    focused,
+    clearHighlights,
     clearText,
     quillRef,
-    handleSelectionAnalysis,
+    handleSelection,
     scrollToMatch,
     selectionAnalysis,
   };
 };
 
-// Helper function to extract plain text from Quill content
-const extractPlainText = (content: string | QuillDelta[]): string => {
-  if (typeof content === 'string') {
-    // Remove HTML tags and normalize whitespace
+const decode = (s: string) =>
+  s
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+
+/**
+ * Plain text the way Quill's getText() would give it, for when the editor is
+ * not mounted yet: one "\n" per block, whitespace inside lines kept.
+ */
+export const plainTextOf = (content: string | QuillDelta[]): string => {
+  if (Array.isArray(content))
     return content
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-      .replace(/&amp;/g, '&') // Replace HTML entities
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
-      .trim();
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map(item => {
-        if (typeof item === 'string') {
-          return item;
-        }
-        if (item && typeof item === 'object' && item.insert) {
-          // Handle Quill Delta format
-          if (typeof item.insert === 'string') {
-            return item.insert;
-          }
-          // Handle embedded objects (images, etc.)
-          return '';
-        }
-        return '';
-      })
-      .join('')
-      .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-      .replace(/&amp;/g, '&') // Replace HTML entities
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
-      .trim();
-  }
-
-  return '';
-};
-
-// Helper function to get colors for repetitions
-const getColorForRepetition = (index: number): string => {
-  const colors = [
-    'rgba(59, 130, 246, 0.4)', // blue
-    'rgba(16, 185, 129, 0.4)', // green
-    'rgba(245, 158, 11, 0.4)', // yellow
-    'rgba(139, 92, 246, 0.4)', // purple
-    'rgba(236, 72, 153, 0.4)', // pink
-    'rgba(249, 115, 22, 0.4)', // orange
-    'rgba(6, 182, 212, 0.4)', // cyan
-  ] as const;
-  return colors[index % colors.length] ?? colors[0];
+      .map(op => (typeof op.insert === 'string' ? op.insert : ''))
+      .join('');
+  return decode(
+    content
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(p|h[1-6]|li|blockquote|pre|div|tr)>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+  );
 };

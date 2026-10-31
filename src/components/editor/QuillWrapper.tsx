@@ -10,14 +10,30 @@ type ReactQuillLikeProps = {
   modules?: unknown;
   theme?: string;
   placeholder?: string | undefined;
-  onSelectionChange?: ((range: QuillRange | null) => void) | undefined;
+  onChangeSelection?: ((range: QuillRange | null) => void) | undefined;
 };
 
-const ReactQuill = dynamic(() => import('react-quill-new'), {
-  ssr: false,
-}) as unknown as React.ForwardRefExoticComponent<
-  ReactQuillLikeProps & React.RefAttributes<{ getEditor?: () => QuillEditor }>
->;
+type ReactQuillHandle = { getEditor?: () => QuillEditor };
+
+// next/dynamic does not forward refs, so the ref travels as a normal prop.
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill-new');
+    const Forwarded = ({
+      forwardedRef,
+      ...props
+    }: ReactQuillLikeProps & {
+      forwardedRef: React.Ref<ReactQuillHandle>;
+    }) => (
+      <RQ
+        ref={forwardedRef as React.Ref<never>}
+        {...(props as React.ComponentProps<typeof RQ>)}
+      />
+    );
+    return Forwarded;
+  },
+  { ssr: false }
+);
 
 interface QuillDelta {
   insert: string;
@@ -84,13 +100,14 @@ const QuillWrapper = forwardRef<QuillWrapperRef, QuillWrapperProps>(
 
     return (
       <ReactQuill
-        ref={reactQuillRef}
+        forwardedRef={reactQuillRef}
         value={value}
         onChange={onChange}
         modules={modules}
         theme="snow"
         placeholder={placeholder}
-        onSelectionChange={onSelectionChange}
+        // react-quill-new calls this onChangeSelection, not onSelectionChange
+        onChangeSelection={onSelectionChange}
       />
     );
   }

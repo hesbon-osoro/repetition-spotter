@@ -1,81 +1,27 @@
 // src/components/editor/Editor.tsx
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import QuillWrapper, { QuillWrapperRef } from './QuillWrapper';
-import { useSelectionAnalysis } from '../../hooks/useSelectionAnalysis';
-import { applyHighlights } from '../../utils/textProcessing';
 import EditorLoader from '@/components/ui/EditorLoader';
 import { sampleText } from '@/lib/sampleText';
+import type { QuillDelta } from '@/hooks/useTextAnalysis';
 import { QuillRange } from '../../types';
-
-interface QuillDelta {
-  insert: string;
-  attributes?: Record<string, unknown>;
-}
-
-// Helper function to extract plain text from Quill content
-const extractPlainText = (content: string | QuillDelta[]): string => {
-  if (typeof content === 'string') {
-    // Remove HTML tags and normalize whitespace
-    return content
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-      .replace(/&amp;/g, '&') // Replace HTML entities
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
-      .trim();
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map(item => {
-        if (typeof item === 'string') {
-          return item;
-        }
-        if (item && typeof item === 'object' && 'insert' in item) {
-          // Handle Quill Delta format
-          if (typeof item.insert === 'string') {
-            return item.insert;
-          }
-          // Handle embedded objects (images, etc.)
-          return '';
-        }
-        return '';
-      })
-      .join('')
-      .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-      .replace(/&amp;/g, '&') // Replace HTML entities
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\n\s*\n/g, '\n\n') // Normalize paragraph breaks
-      .trim();
-  }
-
-  return '';
-};
 
 interface EditorProps {
   content: string | QuillDelta[];
   onChange: (content: string | QuillDelta[]) => void;
   quillRef?: React.RefObject<QuillWrapperRef | null>;
+  onSelectionChange?: (range: QuillRange | null) => void;
 }
 
 const Editor: React.FC<EditorProps> = ({
   content,
   onChange,
   quillRef: externalQuillRef,
+  onSelectionChange,
 }) => {
   const internalQuillRef = useRef<QuillWrapperRef>(null);
   const quillRef = externalQuillRef || internalQuillRef;
   const [isLoading, setIsLoading] = useState(true);
-  const { analyzeSelection } = useSelectionAnalysis();
 
   // Load sample text if empty
   useEffect(() => {
@@ -92,36 +38,6 @@ const Editor: React.FC<EditorProps> = ({
       if (timer) clearTimeout(timer);
     };
   }, [content, onChange]);
-
-  const handleSelectionChange = useCallback(
-    (range: QuillRange | null) => {
-      if (range && range.length > 0 && quillRef.current) {
-        try {
-          const selectedText = quillRef.current
-            .getText(range.index, range.length)
-            .trim();
-          if (selectedText.length > 0) {
-            // Convert content to string for analysis
-            const textContent = extractPlainText(content);
-
-            // Analyze selection and get matches
-            const analysis = analyzeSelection(selectedText, range, textContent);
-
-            // Apply highlights to similar text
-            if (analysis && analysis.matches.length > 0 && quillRef.current) {
-              const editor = quillRef.current.getEditor();
-              if (editor) {
-                applyHighlights(editor, analysis.matches, selectedText, range);
-              }
-            }
-          }
-        } catch (error) {
-          console.warn('Selection analysis error:', error);
-        }
-      }
-    },
-    [analyzeSelection, content, quillRef]
-  );
 
   if (isLoading) {
     return (
@@ -164,7 +80,7 @@ const Editor: React.FC<EditorProps> = ({
           value={content}
           onChange={onChange}
           placeholder="Paste your text here for VSCode-style repetition analysis..."
-          onSelectionChange={handleSelectionChange}
+          onSelectionChange={onSelectionChange}
         />
         <style jsx global>{`
           /* Improve readability for code/JSON */
