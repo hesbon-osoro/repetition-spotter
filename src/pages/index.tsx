@@ -10,8 +10,6 @@ import RepetitionList from '../components/analytics/RepetitionList';
 import SelectionAnalysis from '@/components/analytics/SelectionAnalysis';
 import Chart from '../components/analytics/Chart';
 import { useTextAnalysis } from '../hooks/useTextAnalysis';
-import { getColorForMatch } from '../utils/highlightUtils';
-import { Repetition } from '../types';
 
 const Home: NextPage = () => {
   const {
@@ -24,68 +22,15 @@ const Home: NextPage = () => {
     options,
     updateOption,
     analyze,
+    highlightRepetition,
+    focused,
     clearHighlights,
     clearText,
     quillRef,
+    handleSelection,
     scrollToMatch,
     selectionAnalysis,
   } = useTextAnalysis();
-
-  const handleRepetitionHighlight = (repetition: Repetition) => {
-    if (!quillRef.current) return;
-
-    const editor = quillRef.current.getEditor();
-    if (!editor || !repetition.text || typeof editor.getLength !== 'function')
-      return;
-
-    try {
-      // Clear existing highlights first
-      const length = editor.getLength();
-      if (length > 0) {
-        editor.formatText(0, length, 'background', false);
-      }
-
-      // Find and highlight all occurrences of this repetition
-      const fullText = editor.getText();
-      const searchText = repetition.text;
-      const color = getColorForMatch(repetitions.indexOf(repetition));
-
-      let occurrenceCount = 0;
-
-      // Use a more robust search that handles case-insensitive matching
-      const searchRegex = new RegExp(
-        searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-        'gi'
-      );
-      let match;
-
-      while ((match = searchRegex.exec(fullText)) !== null) {
-        const matchIndex = match.index;
-        const matchLength = match[0].length;
-
-        editor.formatText(matchIndex, matchLength, 'background', color);
-
-        // Scroll to the first occurrence
-        if (occurrenceCount === 0) {
-          editor.setSelection(matchIndex, matchLength);
-          const bounds = editor.getBounds(matchIndex, matchLength);
-          if (bounds) {
-            const editorContainer = editor.container;
-            if (editorContainer) {
-              editorContainer.scrollTo({
-                top: bounds.top + editorContainer.scrollTop - 100,
-                behavior: 'smooth',
-              });
-            }
-          }
-        }
-
-        occurrenceCount++;
-      }
-    } catch (error) {
-      console.warn('Error highlighting repetition:', error);
-    }
-  };
 
   return (
     <>
@@ -136,6 +81,7 @@ const Home: NextPage = () => {
                   content={content}
                   onChange={setContent}
                   quillRef={quillRef}
+                  onSelectionChange={handleSelection}
                 />
               </div>
               <StatsCards stats={stats} />
@@ -151,7 +97,8 @@ const Home: NextPage = () => {
               )}
               <RepetitionList
                 repetitions={repetitions}
-                onHighlight={handleRepetitionHighlight}
+                onHighlight={highlightRepetition}
+                focused={focused}
               />
               <Chart stats={stats} />
             </div>

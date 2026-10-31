@@ -1,4 +1,4 @@
-import { SelectionAnalysis as SelectionAnalysisType } from '@/hooks/useSelectionAnalysis';
+import type { SelectionAnalysis as SelectionAnalysisType } from '@/utils/similarityAlgorithms';
 
 interface SelectionAnalysisProps {
   analysis: SelectionAnalysisType;

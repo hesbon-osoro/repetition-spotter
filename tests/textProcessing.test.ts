@@ -154,10 +154,16 @@ describe('analyzeText', () => {
   });
 
   describe('word level', () => {
-    it('counts repeated words and ignores short ones', () => {
+    // As in the legacy tool, single words are only listed when the minimum
+    // length is 1; otherwise the Words level lists repeated word sequences.
+    it('counts repeated words and ignores short ones at minimum length 1', () => {
       const text = 'apple banana apple cherry apple an to be';
 
-      const { repetitions } = analyzeText(text, 'word', options());
+      const { repetitions } = analyzeText(
+        text,
+        'word',
+        options({ minLength: 1 })
+      );
 
       const apple = repetitions.find(r => r.text === 'apple');
       expect(apple?.count).toBe(3);
