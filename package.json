@@ -25,7 +25,7 @@
     "mammoth": "^1.13.0",
     "marked": "^16.4.2",
     "next": "15.5.29",
-    "pdfjs-dist": "^5.7.284",
+    "pdfjs-dist": "^6.2.108",
     "quill": "^2.0.3",
     "react": "19.3.1",
     "react-chartjs-2": "^5.3.1",
