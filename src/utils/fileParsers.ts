@@ -86,25 +86,20 @@ export async function parseFile(
   if (ext === 'pdf') {
     try {
       const pdfjsLib = await import('pdfjs-dist');
-      // Configure worker to suppress warnings in some bundlers
-      try {
-        if (typeof window !== 'undefined') {
-          const { GlobalWorkerOptions, version } =
-            (pdfjsLib as unknown as {
-              GlobalWorkerOptions?: { workerSrc?: string };
-              version?: string;
-            }) || {};
-          if (GlobalWorkerOptions && !GlobalWorkerOptions.workerSrc) {
-            GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version ?? '4.0.379'}/pdf.worker.min.js`;
-          }
-        }
-      } catch (e) {
-        // Non-fatal, continue without explicit worker config
-        console.warn('PDF worker config failed, falling back to text()', e);
+      // The worker ships with the app (bundled from pdfjs-dist), so it always matches the library.
+      // A CDN URL drifted: pdf.js 4+ only publishes pdf.worker.min.mjs, and the .js URL was a 404.
+      if (
+        typeof window !== 'undefined' &&
+        !pdfjsLib.GlobalWorkerOptions.workerSrc
+      ) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          'pdfjs-dist/build/pdf.worker.min.mjs',
+          import.meta.url
+        ).toString();
       }
 
       onProgress?.({ phase: 'Parsing PDF', progress: 0 });
-      const loadingTask = (pdfjsLib as any).getDocument({ data: buffer });
+      const loadingTask = pdfjsLib.getDocument({ data: buffer });
       const pdf = await loadingTask.promise;
       let fullText = '';
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
